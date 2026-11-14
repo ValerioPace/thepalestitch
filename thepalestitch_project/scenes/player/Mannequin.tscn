@@ -1,0 +1,61 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/player/Mannequin.cs" id="1_mannequin"]
+
+[sub_resource type="StandardMaterial3D" id="cloth"]
+albedo_color = Color(0.082, 0.082, 0.102, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="skin"]
+albedo_color = Color(0.4, 0.39, 0.35, 1)
+roughness = 0.8
+
+[sub_resource type="CylinderMesh" id="body_mesh"]
+top_radius = 0.24
+bottom_radius = 0.38
+height = 1.2
+
+[sub_resource type="CylinderMesh" id="cowl_mesh"]
+top_radius = 0.17
+bottom_radius = 0.44
+height = 0.36
+
+[sub_resource type="SphereMesh" id="head_mesh"]
+radius = 0.14
+height = 0.3
+
+[sub_resource type="SphereMesh" id="hood_mesh"]
+radius = 0.23
+height = 0.5
+
+[sub_resource type="TorusMesh" id="belt_mesh"]
+inner_radius = 0.27
+outer_radius = 0.33
+
+[node name="Mannequin" type="Node3D"]
+script = ExtResource("1_mannequin")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.994522, 0.104528, 0, -0.104528, 0.994522, 0, 0.6, 0)
+mesh = SubResource("body_mesh")
+surface_material_override/0 = SubResource("cloth")
+
+[node name="Belt" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, -0.02)
+mesh = SubResource("belt_mesh")
+surface_material_override/0 = SubResource("cloth")
+
+[node name="Cowl" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.24, -0.08)
+mesh = SubResource("cowl_mesh")
+surface_material_override/0 = SubResource("cloth")
+
+[node name="Head" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -0.24)
+mesh = SubResource("head_mesh")
+surface_material_override/0 = SubResource("skin")
+
+[node name="Hood" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, -0.1)
+mesh = SubResource("hood_mesh")
+surface_material_override/0 = SubResource("cloth")

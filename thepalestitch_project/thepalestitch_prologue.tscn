@@ -1,3 +1,554 @@
 [gd_scene format=3 uid="uid://dwlu48iju5oev"]
 
-[node name="Node3D" type="Node3D" unique_id=615114340]
+[ext_resource type="Script" path="res://scripts/world/PrologueLevel.cs" id="level"]
+[ext_resource type="Script" path="res://scripts/world/TorchFlicker.cs" id="flicker"]
+[ext_resource type="Script" path="res://scripts/world/SurfaceZone.cs" id="surface"]
+[ext_resource type="Script" path="res://scripts/world/Interactable.cs" id="interactable"]
+[ext_resource type="Script" path="res://scripts/player/CameraRig.cs" id="rig"]
+[ext_resource type="Script" path="res://scripts/stealth/NoiseRingSpawner.cs" id="rings"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/ai/Watchman.tscn" id="watchman"]
+[ext_resource type="PackedScene" path="res://scenes/ui/Hud.tscn" id="hud"]
+
+[sub_resource type="Environment" id="night"]
+background_mode = 1
+background_color = Color(0.008, 0.01, 0.014, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.3, 0.38, 0.56, 1)
+ambient_light_energy = 0.6
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.5
+fog_enabled = true
+fog_light_color = Color(0.06, 0.075, 0.1, 1)
+fog_density = 0.006
+
+[sub_resource type="NavigationMesh" id="navmesh"]
+geometry_parsed_geometry_type = 1
+agent_radius = 0.5
+
+[sub_resource type="StandardMaterial3D" id="ground"]
+albedo_color = Color(0.106, 0.11, 0.118, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="wall"]
+albedo_color = Color(0.18, 0.173, 0.161, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="merchant"]
+albedo_color = Color(0.216, 0.188, 0.165, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="lowwall"]
+albedo_color = Color(0.149, 0.149, 0.149, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="timber"]
+albedo_color = Color(0.169, 0.129, 0.098, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="door"]
+albedo_color = Color(0.29, 0.184, 0.102, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="straw"]
+albedo_color = Color(0.478, 0.416, 0.208, 1)
+roughness = 1
+
+[sub_resource type="StandardMaterial3D" id="gravel"]
+albedo_color = Color(0.333, 0.337, 0.353, 1)
+roughness = 1
+
+[sub_resource type="StandardMaterial3D" id="planks"]
+albedo_color = Color(0.302, 0.227, 0.149, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mud"]
+albedo_color = Color(0.141, 0.114, 0.0902, 1)
+roughness = 1
+
+[sub_resource type="StandardMaterial3D" id="flame"]
+albedo_color = Color(1, 0.784, 0.451, 1)
+roughness = 0.5
+emission_enabled = true
+emission = Color(1, 0.62, 0.251, 1)
+emission_energy_multiplier = 3
+
+[sub_resource type="BoxMesh" id="ground_mesh"]
+size = Vector3(70, 1, 44)
+
+[sub_resource type="BoxShape3D" id="ground_shape"]
+size = Vector3(70, 1, 44)
+
+[sub_resource type="BoxMesh" id="housewest_mesh"]
+size = Vector3(9, 5, 8)
+
+[sub_resource type="BoxShape3D" id="housewest_shape"]
+size = Vector3(9, 5, 8)
+
+[sub_resource type="BoxMesh" id="housemid_mesh"]
+size = Vector3(10, 6, 8)
+
+[sub_resource type="BoxShape3D" id="housemid_shape"]
+size = Vector3(10, 6, 8)
+
+[sub_resource type="BoxMesh" id="houseeast_mesh"]
+size = Vector3(10, 5, 8)
+
+[sub_resource type="BoxShape3D" id="houseeast_shape"]
+size = Vector3(10, 5, 8)
+
+[sub_resource type="BoxMesh" id="merchanthouse_mesh"]
+size = Vector3(10, 7, 8)
+
+[sub_resource type="BoxShape3D" id="merchanthouse_shape"]
+size = Vector3(10, 7, 8)
+
+[sub_resource type="BoxMesh" id="yardwallwest_mesh"]
+size = Vector3(0.5, 1.6, 5)
+
+[sub_resource type="BoxShape3D" id="yardwallwest_shape"]
+size = Vector3(0.5, 1.6, 5)
+
+[sub_resource type="BoxMesh" id="yardwalleast_mesh"]
+size = Vector3(0.5, 1.6, 5)
+
+[sub_resource type="BoxShape3D" id="yardwalleast_shape"]
+size = Vector3(0.5, 1.6, 5)
+
+[sub_resource type="BoxMesh" id="yardwallsouthwest_mesh"]
+size = Vector3(3.5, 1.6, 0.5)
+
+[sub_resource type="BoxShape3D" id="yardwallsouthwest_shape"]
+size = Vector3(3.5, 1.6, 0.5)
+
+[sub_resource type="BoxMesh" id="yardwallsoutheast_mesh"]
+size = Vector3(3.5, 1.6, 0.5)
+
+[sub_resource type="BoxShape3D" id="yardwallsoutheast_shape"]
+size = Vector3(3.5, 1.6, 0.5)
+
+[sub_resource type="BoxMesh" id="parapet_mesh"]
+size = Vector3(50, 0.9, 0.5)
+
+[sub_resource type="BoxShape3D" id="parapet_shape"]
+size = Vector3(50, 0.9, 0.5)
+
+[sub_resource type="BoxMesh" id="streetendwest_mesh"]
+size = Vector3(0.5, 3, 7.5)
+
+[sub_resource type="BoxShape3D" id="streetendwest_shape"]
+size = Vector3(0.5, 3, 7.5)
+
+[sub_resource type="BoxMesh" id="streetendeast_mesh"]
+size = Vector3(0.5, 3, 7.5)
+
+[sub_resource type="BoxShape3D" id="streetendeast_shape"]
+size = Vector3(0.5, 3, 7.5)
+
+[sub_resource type="BoxMesh" id="cart_mesh"]
+size = Vector3(2.6, 1.2, 1.4)
+
+[sub_resource type="BoxShape3D" id="cart_shape"]
+size = Vector3(2.6, 1.2, 1.4)
+
+[sub_resource type="BoxMesh" id="cratestack_mesh"]
+size = Vector3(1.5, 1.5, 1.4)
+
+[sub_resource type="BoxShape3D" id="cratestack_shape"]
+size = Vector3(1.5, 1.5, 1.4)
+
+[sub_resource type="BoxMesh" id="barrels_mesh"]
+size = Vector3(1.4, 1.2, 1.2)
+
+[sub_resource type="BoxShape3D" id="barrels_shape"]
+size = Vector3(1.4, 1.2, 1.2)
+
+[sub_resource type="BoxMesh" id="door_mesh"]
+size = Vector3(1.4, 2.4, 0.16)
+
+[sub_resource type="BoxShape3D" id="door_shape"]
+size = Vector3(1.4, 2.4, 0.16)
+
+[sub_resource type="BoxShape3D" id="straw_shape"]
+size = Vector3(5, 2, 2.6)
+
+[sub_resource type="BoxShape3D" id="gravel_street_shape"]
+size = Vector3(7, 2, 3.4)
+
+[sub_resource type="BoxShape3D" id="gravel_yard_shape"]
+size = Vector3(10, 2, 4.5)
+
+[sub_resource type="BoxShape3D" id="planks_shape"]
+size = Vector3(1.6, 2, 5)
+
+[sub_resource type="BoxShape3D" id="mud_shape"]
+size = Vector3(2, 2, 6)
+
+[sub_resource type="BoxShape3D" id="door_reach"]
+size = Vector3(2.2, 2.4, 1.6)
+
+[node name="Prologue" type="Node3D"]
+script = ExtResource("level")
+PlayerPath = NodePath("Player")
+RigPath = NodePath("CameraRig")
+HudPath = NodePath("Hud")
+DoorPath = NodePath("MerchantDoor")
+NavRegionPath = NodePath("World")
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("night")
+
+[node name="Moon" type="DirectionalLight3D" parent="." groups=["stealth_light"]]
+transform = Transform3D(-0.866025, -0.371572, 0.334565, 0, 0.669131, 0.743145, -0.5, 0.643582, -0.579484, 0, 25, 0)
+light_color = Color(0.56, 0.67, 0.92, 1)
+light_energy = 0.6
+shadow_enabled = true
+directional_shadow_max_distance = 80.0
+
+[node name="World" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("navmesh")
+
+[node name="Ground" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -0.5, -2)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/Ground"]
+mesh = SubResource("ground_mesh")
+surface_material_override/0 = SubResource("ground")
+
+[node name="Shape" type="CollisionShape3D" parent="World/Ground"]
+shape = SubResource("ground_shape")
+
+[node name="HouseWest" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 2.5, -7)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/HouseWest"]
+mesh = SubResource("housewest_mesh")
+surface_material_override/0 = SubResource("wall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/HouseWest"]
+shape = SubResource("housewest_shape")
+
+[node name="HouseMid" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 3, -7)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/HouseMid"]
+mesh = SubResource("housemid_mesh")
+surface_material_override/0 = SubResource("wall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/HouseMid"]
+shape = SubResource("housemid_shape")
+
+[node name="HouseEast" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2.5, -7)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/HouseEast"]
+mesh = SubResource("houseeast_mesh")
+surface_material_override/0 = SubResource("wall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/HouseEast"]
+shape = SubResource("houseeast_shape")
+
+[node name="MerchantHouse" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 3.5, -12)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/MerchantHouse"]
+mesh = SubResource("merchanthouse_mesh")
+surface_material_override/0 = SubResource("merchant")
+
+[node name="Shape" type="CollisionShape3D" parent="World/MerchantHouse"]
+shape = SubResource("merchanthouse_shape")
+
+[node name="YardWallWest" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.75, 0.8, -5.5)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/YardWallWest"]
+mesh = SubResource("yardwallwest_mesh")
+surface_material_override/0 = SubResource("lowwall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/YardWallWest"]
+shape = SubResource("yardwallwest_shape")
+
+[node name="YardWallEast" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.25, 0.8, -5.5)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/YardWallEast"]
+mesh = SubResource("yardwalleast_mesh")
+surface_material_override/0 = SubResource("lowwall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/YardWallEast"]
+shape = SubResource("yardwalleast_shape")
+
+[node name="YardWallSouthWest" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.75, 0.8, -3.25)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/YardWallSouthWest"]
+mesh = SubResource("yardwallsouthwest_mesh")
+surface_material_override/0 = SubResource("lowwall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/YardWallSouthWest"]
+shape = SubResource("yardwallsouthwest_shape")
+
+[node name="YardWallSouthEast" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.25, 0.8, -3.25)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/YardWallSouthEast"]
+mesh = SubResource("yardwallsoutheast_mesh")
+surface_material_override/0 = SubResource("lowwall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/YardWallSouthEast"]
+shape = SubResource("yardwallsoutheast_shape")
+
+[node name="Parapet" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.45, 3.75)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/Parapet"]
+mesh = SubResource("parapet_mesh")
+surface_material_override/0 = SubResource("lowwall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/Parapet"]
+shape = SubResource("parapet_shape")
+
+[node name="StreetEndWest" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.25, 1.5, 0.25)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/StreetEndWest"]
+mesh = SubResource("streetendwest_mesh")
+surface_material_override/0 = SubResource("wall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/StreetEndWest"]
+shape = SubResource("streetendwest_shape")
+
+[node name="StreetEndEast" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.25, 1.5, 0.25)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/StreetEndEast"]
+mesh = SubResource("streetendeast_mesh")
+surface_material_override/0 = SubResource("wall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/StreetEndEast"]
+shape = SubResource("streetendeast_shape")
+
+[node name="Cart" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0.6, 2.4)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/Cart"]
+mesh = SubResource("cart_mesh")
+surface_material_override/0 = SubResource("timber")
+
+[node name="Shape" type="CollisionShape3D" parent="World/Cart"]
+shape = SubResource("cart_shape")
+
+[node name="CrateStack" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.75, -2.2)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/CrateStack"]
+mesh = SubResource("cratestack_mesh")
+surface_material_override/0 = SubResource("timber")
+
+[node name="Shape" type="CollisionShape3D" parent="World/CrateStack"]
+shape = SubResource("cratestack_shape")
+
+[node name="Barrels" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.2, 0.6, 2.6)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/Barrels"]
+mesh = SubResource("barrels_mesh")
+surface_material_override/0 = SubResource("timber")
+
+[node name="Shape" type="CollisionShape3D" parent="World/Barrels"]
+shape = SubResource("barrels_shape")
+
+[node name="Door" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 1.2, -7.95)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/Door"]
+mesh = SubResource("door_mesh")
+surface_material_override/0 = SubResource("door")
+
+[node name="Shape" type="CollisionShape3D" parent="World/Door"]
+shape = SubResource("door_shape")
+
+[node name="Surfaces" type="Node3D" parent="."]
+
+[node name="Straw" type="Area3D" parent="Surfaces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.5, 0, 1.6)
+collision_layer = 16
+collision_mask = 2
+monitorable = false
+script = ExtResource("surface")
+Surface = 1
+
+[node name="Shape" type="CollisionShape3D" parent="Surfaces/Straw"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("straw_shape")
+
+[node name="Look" type="CSGBox3D" parent="Surfaces/Straw"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+size = Vector3(5, 0.04, 2.6)
+material = SubResource("straw")
+
+[node name="GravelStreet" type="Area3D" parent="Surfaces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 0, 0.6)
+collision_layer = 16
+collision_mask = 2
+monitorable = false
+script = ExtResource("surface")
+Surface = 2
+
+[node name="Shape" type="CollisionShape3D" parent="Surfaces/GravelStreet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("gravel_street_shape")
+
+[node name="Look" type="CSGBox3D" parent="Surfaces/GravelStreet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+size = Vector3(7, 0.04, 3.4)
+material = SubResource("gravel")
+
+[node name="GravelYard" type="Area3D" parent="Surfaces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 0, -5.5)
+collision_layer = 16
+collision_mask = 2
+monitorable = false
+script = ExtResource("surface")
+Surface = 2
+
+[node name="Shape" type="CollisionShape3D" parent="Surfaces/GravelYard"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("gravel_yard_shape")
+
+[node name="Look" type="CSGBox3D" parent="Surfaces/GravelYard"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+size = Vector3(10, 0.04, 4.5)
+material = SubResource("gravel")
+
+[node name="YardPlanks" type="Area3D" parent="Surfaces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 0, -5.4)
+collision_layer = 16
+collision_mask = 2
+monitorable = false
+priority = 1
+script = ExtResource("surface")
+Surface = 3
+
+[node name="Shape" type="CollisionShape3D" parent="Surfaces/YardPlanks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("planks_shape")
+
+[node name="Look" type="CSGBox3D" parent="Surfaces/YardPlanks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+size = Vector3(1.6, 0.04, 5)
+material = SubResource("planks")
+
+[node name="AlleyMud" type="Area3D" parent="Surfaces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.5, 0, -6)
+collision_layer = 16
+collision_mask = 2
+monitorable = false
+script = ExtResource("surface")
+Surface = 4
+
+[node name="Shape" type="CollisionShape3D" parent="Surfaces/AlleyMud"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("mud_shape")
+
+[node name="Look" type="CSGBox3D" parent="Surfaces/AlleyMud"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+size = Vector3(2, 0.04, 6)
+material = SubResource("mud")
+
+[node name="Torches" type="Node3D" parent="."]
+
+[node name="TorchAlley" type="OmniLight3D" parent="Torches" groups=["stealth_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.4, 2.7, -2.6)
+light_color = Color(1, 0.722, 0.4, 1)
+light_energy = 2.2
+shadow_enabled = true
+omni_range = 7
+script = ExtResource("flicker")
+Depth = 0.25
+
+[node name="Flame" type="CSGBox3D" parent="Torches/TorchAlley"]
+cast_shadow = 0
+size = Vector3(0.12, 0.22, 0.12)
+material = SubResource("flame")
+
+[node name="TorchStreet" type="OmniLight3D" parent="Torches" groups=["stealth_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2.7, -2.6)
+light_color = Color(1, 0.722, 0.4, 1)
+light_energy = 2.2
+shadow_enabled = true
+omni_range = 7
+script = ExtResource("flicker")
+Depth = 0.25
+
+[node name="Flame" type="CSGBox3D" parent="Torches/TorchStreet"]
+cast_shadow = 0
+size = Vector3(0.12, 0.22, 0.12)
+material = SubResource("flame")
+
+[node name="TorchGate" type="OmniLight3D" parent="Torches" groups=["stealth_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.3, 2.3, -2.7)
+light_color = Color(1, 0.722, 0.4, 1)
+light_energy = 1.8
+shadow_enabled = true
+omni_range = 6
+script = ExtResource("flicker")
+Depth = 0.25
+
+[node name="Flame" type="CSGBox3D" parent="Torches/TorchGate"]
+cast_shadow = 0
+size = Vector3(0.12, 0.22, 0.12)
+material = SubResource("flame")
+
+[node name="Player" parent="." instance=ExtResource("player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.5, 0.05, 1.2)
+
+[node name="CameraRig" type="Node3D" parent="."]
+script = ExtResource("rig")
+TargetPath = NodePath("../Player")
+
+[node name="IsoCamera" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 23, 33)
+projection = 1
+current = true
+size = 17.0
+far = 200.0
+
+[node name="PatrolRound" type="Node3D" parent="."]
+
+[node name="Point1" type="Marker3D" parent="PatrolRound"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 1.6)
+
+[node name="Point2" type="Marker3D" parent="PatrolRound"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 0, 1.6)
+
+[node name="Point3" type="Marker3D" parent="PatrolRound"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 0, -1.4)
+
+[node name="Point4" type="Marker3D" parent="PatrolRound"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -1.4)
+
+[node name="Watchman" parent="." instance=ExtResource("watchman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0.05, 1.6)
+PatrolPath = NodePath("../PatrolRound")
+
+[node name="MerchantDoor" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 1.2, -7.1)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("interactable")
+PromptKey = "PROMPT_PICK_LOCK"
+LookTargetPath = NodePath("Lock")
+
+[node name="Shape" type="CollisionShape3D" parent="MerchantDoor"]
+shape = SubResource("door_reach")
+
+[node name="Lock" type="Marker3D" parent="MerchantDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, -0.1, -0.8)
+
+[node name="NoiseRings" type="Node3D" parent="."]
+script = ExtResource("rings")
+
+[node name="Hud" parent="." instance=ExtResource("hud")]

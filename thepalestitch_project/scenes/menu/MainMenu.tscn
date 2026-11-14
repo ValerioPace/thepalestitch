@@ -1,0 +1,122 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/MainMenu.cs" id="1_menu"]
+[ext_resource type="Shader" path="res://ui/shaders/fog_backdrop.gdshader" id="2_fog"]
+[ext_resource type="Script" path="res://scripts/ui/StitchLine.cs" id="3_stitch"]
+
+[sub_resource type="ShaderMaterial" id="fog_material"]
+shader = ExtResource("2_fog")
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+material = SubResource("fog_material")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.14
+anchor_right = 1.0
+anchor_bottom = 0.14
+offset_bottom = 170.0
+grow_horizontal = 2
+theme_type_variation = &"TitleLabel"
+text = "GAME_TITLE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Stitch" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.22
+anchor_top = 0.335
+anchor_right = 0.78
+anchor_bottom = 0.335
+offset_top = -30.0
+offset_bottom = 30.0
+grow_horizontal = 2
+mouse_filter = 2
+script = ExtResource("3_stitch")
+
+[node name="Tagline" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.385
+anchor_right = 1.0
+anchor_bottom = 0.385
+offset_bottom = 50.0
+grow_horizontal = 2
+theme_type_variation = &"PerkLabel"
+theme_override_font_sizes/font_size = 30
+text = "MENU_TAGLINE"
+horizontal_alignment = 1
+
+[node name="Menu" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.54
+anchor_right = 0.5
+anchor_bottom = 0.54
+offset_left = -230.0
+offset_right = 230.0
+offset_bottom = 360.0
+grow_horizontal = 2
+theme_override_constants/separation = 8
+
+[node name="NewGame" type="Button" parent="Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "MENU_NEW"
+
+[node name="Continue" type="Button" parent="Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "MENU_CONTINUE"
+
+[node name="WatchIntro" type="Button" parent="Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "MENU_INTRO"
+
+[node name="Language" type="Button" parent="Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "MENU_LANGUAGE"
+
+[node name="Quit" type="Button" parent="Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "MENU_QUIT"
+
+[node name="Version" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -60.0
+offset_right = -36.0
+offset_bottom = -28.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_type_variation = &"FaintLabel"
+text = "v0.0.1"
+horizontal_alignment = 2

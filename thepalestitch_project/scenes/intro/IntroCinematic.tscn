@@ -1,0 +1,619 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/intro/IntroCinematic.cs" id="cinematic"]
+[ext_resource type="Script" path="res://scripts/intro/IntroShot.cs" id="shot"]
+[ext_resource type="Script" path="res://scripts/world/TorchFlicker.cs" id="flicker"]
+[ext_resource type="Script" path="res://scripts/ui/StitchLine.cs" id="stitch"]
+
+[sub_resource type="Environment" id="night"]
+background_mode = 1
+background_color = Color(0.012, 0.016, 0.024, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.26, 0.33, 0.46, 1)
+ambient_light_energy = 0.22
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.6
+glow_bloom = 0.1
+fog_enabled = true
+fog_light_color = Color(0.07, 0.09, 0.12, 1)
+fog_density = 0.01
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.008
+volumetric_fog_albedo = Color(0.3, 0.35, 0.42, 1)
+volumetric_fog_length = 110.0
+
+[sub_resource type="StandardMaterial3D" id="ground"]
+albedo_color = Color(0.0627, 0.0667, 0.0706, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="wall"]
+albedo_color = Color(0.173, 0.165, 0.153, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="roof"]
+albedo_color = Color(0.106, 0.0902, 0.0824, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="stone"]
+albedo_color = Color(0.137, 0.141, 0.149, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="timber"]
+albedo_color = Color(0.169, 0.129, 0.098, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="shroud"]
+albedo_color = Color(0.639, 0.624, 0.573, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="void"]
+albedo_color = Color(0.00784, 0.00784, 0.00784, 1)
+roughness = 1
+
+[sub_resource type="StandardMaterial3D" id="flame"]
+albedo_color = Color(1, 0.784, 0.451, 1)
+roughness = 0.5
+emission_enabled = true
+emission = Color(1, 0.62, 0.251, 1)
+emission_energy_multiplier = 3
+
+[sub_resource type="StandardMaterial3D" id="thread"]
+albedo_color = Color(0.914, 0.886, 0.796, 1)
+roughness = 0.6
+emission_enabled = true
+emission = Color(0.914, 0.886, 0.796, 1)
+emission_energy_multiplier = 1.6
+
+[sub_resource type="PrismMesh" id="roof_mesh_1"]
+size = Vector3(6.8, 2.6, 7.8)
+
+[sub_resource type="PrismMesh" id="roof_mesh_2"]
+size = Vector3(7.8, 2.6, 6.8)
+
+[sub_resource type="PrismMesh" id="roof_mesh_3"]
+size = Vector3(6.8, 2.6, 8.8)
+
+[sub_resource type="PrismMesh" id="roof_mesh_4"]
+size = Vector3(7.8, 2.6, 6.8)
+
+[sub_resource type="PrismMesh" id="roof_mesh_5"]
+size = Vector3(6.8, 2.6, 5.8)
+
+[sub_resource type="PrismMesh" id="roof_mesh_6"]
+size = Vector3(7.8, 2.6, 7.8)
+
+[sub_resource type="PrismMesh" id="roof_mesh_7"]
+size = Vector3(6.8, 2.6, 8.8)
+
+[sub_resource type="PrismMesh" id="roof_mesh_8"]
+size = Vector3(5.8, 2.6, 9.8)
+
+[sub_resource type="PrismMesh" id="roof_mesh_9"]
+size = Vector3(6.8, 2.6, 7.8)
+
+[sub_resource type="PrismMesh" id="roof_mesh_10"]
+size = Vector3(6.8, 2.6, 6.8)
+
+[node name="IntroCinematic" type="Node3D"]
+script = ExtResource("cinematic")
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("night")
+
+[node name="Moon" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.766044, -0.321394, 0.55667, 0, 0.866025, 0.5, -0.642788, 0.383022, -0.663414, 0, 30, 0)
+light_color = Color(0.55, 0.66, 0.9, 1)
+light_energy = 0.7
+shadow_enabled = true
+directional_shadow_max_distance = 120.0
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 30)
+current = true
+fov = 50.0
+far = 400.0
+
+[node name="Set" type="Node3D" parent="."]
+
+[node name="Ground" type="CSGBox3D" parent="Set"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+size = Vector3(500, 1, 500)
+material = SubResource("ground")
+
+[node name="Town" type="Node3D" parent="Set"]
+
+[node name="House1" type="CSGBox3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2.5, -4)
+size = Vector3(6, 5, 7)
+material = SubResource("wall")
+
+[node name="Roof1" type="CSGMesh3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 6.3, -4)
+mesh = SubResource("roof_mesh_1")
+material = SubResource("roof")
+
+[node name="House2" type="CSGBox3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3.5, -5)
+size = Vector3(7, 7, 6)
+material = SubResource("wall")
+
+[node name="Roof2" type="CSGMesh3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 8.3, -5)
+mesh = SubResource("roof_mesh_2")
+material = SubResource("roof")
+
+[node name="House3" type="CSGBox3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2.5, -3.5)
+size = Vector3(6, 5, 8)
+material = SubResource("wall")
+
+[node name="Roof3" type="CSGMesh3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 6.3, -3.5)
+mesh = SubResource("roof_mesh_3")
+material = SubResource("roof")
+
+[node name="House4" type="CSGBox3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 3, 6.5)
+size = Vector3(7, 6, 6)
+material = SubResource("wall")
+
+[node name="Roof4" type="CSGMesh3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 7.3, 6.5)
+mesh = SubResource("roof_mesh_4")
+material = SubResource("roof")
+
+[node name="House5" type="CSGBox3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 2.5, 7)
+size = Vector3(6, 5, 5)
+material = SubResource("wall")
+
+[node name="Roof5" type="CSGMesh3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 6.3, 7)
+mesh = SubResource("roof_mesh_5")
+material = SubResource("roof")
+
+[node name="House6" type="CSGBox3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 3, 8)
+size = Vector3(7, 6, 7)
+material = SubResource("wall")
+
+[node name="Roof6" type="CSGMesh3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 7.3, 8)
+mesh = SubResource("roof_mesh_6")
+material = SubResource("roof")
+
+[node name="House7" type="CSGBox3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 2.5, -3)
+size = Vector3(6, 5, 8)
+material = SubResource("wall")
+
+[node name="Roof7" type="CSGMesh3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 6.3, -3)
+mesh = SubResource("roof_mesh_7")
+material = SubResource("roof")
+
+[node name="House8" type="CSGBox3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 2.5, -3)
+size = Vector3(5, 5, 9)
+material = SubResource("wall")
+
+[node name="Roof8" type="CSGMesh3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 6.3, -3)
+mesh = SubResource("roof_mesh_8")
+material = SubResource("roof")
+
+[node name="House9" type="CSGBox3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 2.25, 8)
+size = Vector3(6, 4.5, 7)
+material = SubResource("wall")
+
+[node name="Roof9" type="CSGMesh3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 5.8, 8)
+mesh = SubResource("roof_mesh_9")
+material = SubResource("roof")
+
+[node name="House10" type="CSGBox3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 3.25, 9)
+size = Vector3(6, 6.5, 6)
+material = SubResource("wall")
+
+[node name="Roof10" type="CSGMesh3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 7.8, 9)
+mesh = SubResource("roof_mesh_10")
+material = SubResource("roof")
+
+[node name="Nave" type="CSGBox3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 4.5, -4)
+size = Vector3(7, 9, 14)
+material = SubResource("stone")
+
+[node name="Tower" type="CSGBox3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 10, -14)
+size = Vector3(6, 20, 6)
+material = SubResource("stone")
+
+[node name="Spire" type="CSGCylinder3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 24, -14)
+radius = 4.2
+height = 8.0
+sides = 4
+cone = true
+material = SubResource("roof")
+
+[node name="TorchWest" type="OmniLight3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 2.6, 1.3)
+light_color = Color(1, 0.722, 0.4, 1)
+light_energy = 3
+shadow_enabled = true
+omni_range = 10
+script = ExtResource("flicker")
+Depth = 0.25
+
+[node name="Flame" type="CSGBox3D" parent="Set/Town/TorchWest"]
+cast_shadow = 0
+size = Vector3(0.12, 0.22, 0.12)
+material = SubResource("flame")
+
+[node name="TorchMid" type="OmniLight3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2.6, 3.2)
+light_color = Color(1, 0.722, 0.4, 1)
+light_energy = 3
+shadow_enabled = true
+omni_range = 10
+script = ExtResource("flicker")
+Depth = 0.25
+
+[node name="Flame" type="CSGBox3D" parent="Set/Town/TorchMid"]
+cast_shadow = 0
+size = Vector3(0.12, 0.22, 0.12)
+material = SubResource("flame")
+
+[node name="TorchEast" type="OmniLight3D" parent="Set/Town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 2.6, 1.6)
+light_color = Color(1, 0.722, 0.4, 1)
+light_energy = 3
+shadow_enabled = true
+omni_range = 10
+script = ExtResource("flicker")
+Depth = 0.25
+
+[node name="Flame" type="CSGBox3D" parent="Set/Town/TorchEast"]
+cast_shadow = 0
+size = Vector3(0.12, 0.22, 0.12)
+material = SubResource("flame")
+
+[node name="SewingTable" type="Node3D" parent="Set"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 0, 100)
+
+[node name="Top" type="CSGBox3D" parent="Set/SewingTable"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+size = Vector3(2.2, 0.1, 1.3)
+material = SubResource("timber")
+
+[node name="Linen" type="CSGBox3D" parent="Set/SewingTable"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 0.96, 0.1)
+size = Vector3(1.1, 0.02, 0.7)
+material = SubResource("shroud")
+
+[node name="Needle" type="CSGBox3D" parent="Set/SewingTable"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.98, 0.2)
+size = Vector3(0.26, 0.01, 0.01)
+material = SubResource("thread")
+
+[node name="Candle" type="CSGCylinder3D" parent="Set/SewingTable"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55, 1.08, -0.2)
+radius = 0.035
+height = 0.26
+material = SubResource("shroud")
+
+[node name="CandleFlame" type="OmniLight3D" parent="Set/SewingTable"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55, 1.25, -0.2)
+light_color = Color(1, 0.722, 0.4, 1)
+light_energy = 1.3
+shadow_enabled = true
+omni_range = 4.5
+script = ExtResource("flicker")
+Depth = 0.3
+
+[node name="Flame" type="CSGBox3D" parent="Set/SewingTable/CandleFlame"]
+cast_shadow = 0
+size = Vector3(0.025, 0.07, 0.025)
+material = SubResource("flame")
+
+[node name="GallowsHill" type="Node3D" parent="Set"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 0, -30)
+
+[node name="Mound" type="CSGSphere3D" parent="Set/GallowsHill"]
+transform = Transform3D(1, 0, 0, 0, 0.25, 0, 0, 0, 1, 0, 0, 0)
+radius = 10.0
+radial_segments = 24
+rings = 12
+material = SubResource("ground")
+
+[node name="Post" type="CSGBox3D" parent="Set/GallowsHill"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.9, 0)
+size = Vector3(0.32, 5.2, 0.32)
+material = SubResource("timber")
+
+[node name="Beam" type="CSGBox3D" parent="Set/GallowsHill"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.25, 7.3, 0)
+size = Vector3(2.9, 0.28, 0.28)
+material = SubResource("timber")
+
+[node name="Brace" type="CSGBox3D" parent="Set/GallowsHill"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 6.7, 0)
+size = Vector3(0.9, 0.16, 0.16)
+material = SubResource("timber")
+
+[node name="Rope" type="CSGBox3D" parent="Set/GallowsHill"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3, 6.35, 0)
+size = Vector3(0.05, 1.7, 0.05)
+material = SubResource("shroud")
+
+[node name="Noose" type="CSGTorus3D" parent="Set/GallowsHill"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 2.3, 5.4, 0)
+inner_radius = 0.13
+outer_radius = 0.18
+material = SubResource("shroud")
+
+[node name="ShroudedBody" type="Node3D" parent="Set"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 2.1)
+
+[node name="Shroud" type="CSGBox3D" parent="Set/ShroudedBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.14, 0)
+size = Vector3(0.66, 0.28, 1.9)
+material = SubResource("shroud")
+
+[node name="Head" type="CSGSphere3D" parent="Set/ShroudedBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, -0.9)
+radius = 0.17
+material = SubResource("shroud")
+
+[node name="PaleStitch" type="CSGBox3D" parent="Set/ShroudedBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.372, -0.86)
+size = Vector3(0.16, 0.012, 0.014)
+material = SubResource("thread")
+
+[node name="Crypt" type="Node3D" parent="Set"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 0, -50)
+
+[node name="Wall" type="CSGBox3D" parent="Set/Crypt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, -1.2)
+size = Vector3(18, 9, 1.2)
+material = SubResource("stone")
+
+[node name="Doorway" type="CSGBox3D" parent="Set/Crypt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, -0.55)
+size = Vector3(2.2, 3.6, 0.2)
+material = SubResource("void")
+
+[node name="PillarLeft" type="CSGBox3D" parent="Set/Crypt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 2, -0.3)
+size = Vector3(0.7, 4, 0.7)
+material = SubResource("stone")
+
+[node name="PillarRight" type="CSGBox3D" parent="Set/Crypt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 2, -0.3)
+size = Vector3(0.7, 4, 0.7)
+material = SubResource("stone")
+
+[node name="Lintel" type="CSGBox3D" parent="Set/Crypt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.3, -0.3)
+size = Vector3(4.4, 0.7, 0.9)
+material = SubResource("stone")
+
+[node name="Glow" type="OmniLight3D" parent="Set/Crypt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.5)
+light_color = Color(0.42, 0.9, 0.5, 1)
+light_energy = 2.2
+shadow_enabled = true
+omni_range = 9.0
+script = ExtResource("flicker")
+Depth = 0.45
+Speed = 3.0
+
+[node name="Shots" type="Node3D" parent="."]
+
+[node name="Shot1_Needle" type="Node3D" parent="Shots"]
+script = ExtResource("shot")
+Duration = 13.0
+Fov = 38.0
+SubtitleKey = "INTRO_VO_1"
+CardKey = "INTRO_CARD_1"
+
+[node name="CamFrom" type="Marker3D" parent="Shots/Shot1_Needle"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.5, 1.75, 102.2)
+
+[node name="CamTo" type="Marker3D" parent="Shots/Shot1_Needle"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.8, 1.5, 101.3)
+
+[node name="LookFrom" type="Marker3D" parent="Shots/Shot1_Needle"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 1, 100)
+
+[node name="LookTo" type="Marker3D" parent="Shots/Shot1_Needle"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.05, 1, 100.05)
+
+[node name="Shot2_Rooftops" type="Node3D" parent="Shots"]
+script = ExtResource("shot")
+Duration = 13.0
+Fov = 45.0
+SubtitleKey = "INTRO_VO_2"
+
+[node name="CamFrom" type="Marker3D" parent="Shots/Shot2_Rooftops"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34, 24, 34)
+
+[node name="CamTo" type="Marker3D" parent="Shots/Shot2_Rooftops"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 17, 26)
+
+[node name="LookFrom" type="Marker3D" parent="Shots/Shot2_Rooftops"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 0)
+
+[node name="LookTo" type="Marker3D" parent="Shots/Shot2_Rooftops"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2, 0)
+
+[node name="Shot3_Gallows" type="Node3D" parent="Shots"]
+script = ExtResource("shot")
+Duration = 13.0
+Fov = 50.0
+SubtitleKey = "INTRO_VO_3"
+
+[node name="CamFrom" type="Marker3D" parent="Shots/Shot3_Gallows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34, 3, -19)
+
+[node name="CamTo" type="Marker3D" parent="Shots/Shot3_Gallows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37, 3.6, -22.5)
+
+[node name="LookFrom" type="Marker3D" parent="Shots/Shot3_Gallows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44, 5.5, -30)
+
+[node name="LookTo" type="Marker3D" parent="Shots/Shot3_Gallows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.3, 6.3, -30)
+
+[node name="Shot4_SewnMouth" type="Node3D" parent="Shots"]
+script = ExtResource("shot")
+Duration = 14.0
+Fov = 40.0
+SubtitleKey = "INTRO_VO_4"
+
+[node name="CamFrom" type="Marker3D" parent="Shots/Shot4_SewnMouth"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.2, 2.2, 5)
+
+[node name="CamTo" type="Marker3D" parent="Shots/Shot4_SewnMouth"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.9, 1, 2.2)
+
+[node name="LookFrom" type="Marker3D" parent="Shots/Shot4_SewnMouth"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.2, 2)
+
+[node name="LookTo" type="Marker3D" parent="Shots/Shot4_SewnMouth"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.33, 1.25)
+
+[node name="Shot5_CryptDoor" type="Node3D" parent="Shots"]
+script = ExtResource("shot")
+Duration = 13.0
+Fov = 55.0
+SubtitleKey = "INTRO_VO_5"
+
+[node name="CamFrom" type="Marker3D" parent="Shots/Shot5_CryptDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.6, 1.65, -37)
+
+[node name="CamTo" type="Marker3D" parent="Shots/Shot5_CryptDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.1, 1.6, -45.5)
+
+[node name="LookFrom" type="Marker3D" parent="Shots/Shot5_CryptDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 1.8, -50.5)
+
+[node name="LookTo" type="Marker3D" parent="Shots/Shot5_CryptDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 1.7, -50.5)
+
+[node name="Overlay" type="CanvasLayer" parent="."]
+
+[node name="Black" type="ColorRect" parent="Overlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="BarTop" type="ColorRect" parent="Overlay"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+offset_bottom = 120.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="BarBottom" type="ColorRect" parent="Overlay"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -160.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Card" type="Label" parent="Overlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.24
+anchor_right = 1.0
+anchor_bottom = 0.24
+offset_top = -40.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"HeadingLabel"
+text = "INTRO_CARD_1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Subtitle" type="Label" parent="Overlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.14
+anchor_top = 1.0
+anchor_right = 0.86
+anchor_bottom = 1.0
+offset_top = -150.0
+offset_bottom = -22.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_type_variation = &"SubtitleLabel"
+text = "INTRO_VO_1"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="Stitch" type="Control" parent="Overlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.22
+anchor_top = 0.56
+anchor_right = 0.78
+anchor_bottom = 0.56
+offset_top = -30.0
+offset_bottom = 30.0
+grow_horizontal = 2
+mouse_filter = 2
+script = ExtResource("stitch")
+AutoPlay = false
+
+[node name="Title" type="Label" parent="Overlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.36
+anchor_right = 1.0
+anchor_bottom = 0.36
+offset_bottom = 170.0
+grow_horizontal = 2
+theme_type_variation = &"TitleLabel"
+text = "GAME_TITLE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SkipHint" type="Label" parent="Overlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -420.0
+offset_top = 40.0
+offset_right = -48.0
+offset_bottom = 80.0
+grow_horizontal = 0
+theme_type_variation = &"FaintLabel"
+text = "INTRO_SKIP"
+horizontal_alignment = 2

@@ -1,0 +1,260 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/CharacterCreation.cs" id="1_creation"]
+[ext_resource type="Shader" path="res://ui/shaders/fog_backdrop.gdshader" id="2_fog"]
+[ext_resource type="Script" path="res://scripts/ui/PortraitCard.cs" id="3_portrait"]
+[ext_resource type="PackedScene" path="res://scenes/player/Mannequin.tscn" id="4_mannequin"]
+[ext_resource type="Script" path="res://scripts/world/TorchFlicker.cs" id="5_flicker"]
+
+[sub_resource type="ShaderMaterial" id="fog_material"]
+shader = ExtResource("2_fog")
+shader_parameter/mist = Color(0.09, 0.1, 0.1, 1)
+
+[sub_resource type="Environment" id="stage_environment"]
+background_mode = 1
+background_color = Color(0, 0, 0, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.3, 0.36, 0.45, 1)
+ambient_light_energy = 0.12
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="stage_floor"]
+albedo_color = Color(0.06, 0.06, 0.065, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="stage_floor_mesh"]
+top_radius = 1.3
+bottom_radius = 1.3
+height = 0.06
+
+[node name="CharacterCreation" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_creation")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+material = SubResource("fog_material")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 64
+theme_override_constants/margin_top = 44
+theme_override_constants/margin_right = 64
+theme_override_constants/margin_bottom = 44
+
+[node name="Layout" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Header" type="HBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Margin/Layout/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HeadingLabel"
+text = "CC_TITLE"
+
+[node name="StepTrade" type="Button" parent="Margin/Layout/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "CC_STEP_TRADE"
+
+[node name="StepGarb" type="Button" parent="Margin/Layout/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "CC_STEP_GARB"
+
+[node name="StepVisage" type="Button" parent="Margin/Layout/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "CC_STEP_VISAGE"
+
+[node name="Body" type="HBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="OptionsPanel" type="PanelContainer" parent="Margin/Layout/Body"]
+custom_minimum_size = Vector2(430, 0)
+layout_mode = 2
+
+[node name="Options" type="VBoxContainer" parent="Margin/Layout/Body/OptionsPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="DetailPanel" type="PanelContainer" parent="Margin/Layout/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Detail" type="VBoxContainer" parent="Margin/Layout/Body/DetailPanel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="DetailName" type="Label" parent="Margin/Layout/Body/DetailPanel/Detail"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "TRADE_CUTPURSE_NAME"
+
+[node name="DetailDesc" type="Label" parent="Margin/Layout/Body/DetailPanel/Detail"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "TRADE_CUTPURSE_DESC"
+autowrap_mode = 3
+
+[node name="DetailExtra" type="VBoxContainer" parent="Margin/Layout/Body/DetailPanel/Detail"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="PreviewPanel" type="PanelContainer" parent="Margin/Layout/Body"]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+
+[node name="Preview" type="VBoxContainer" parent="Margin/Layout/Body/PreviewPanel"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Figure" type="SubViewportContainer" parent="Margin/Layout/Body/PreviewPanel/Preview"]
+layout_mode = 2
+size_flags_vertical = 3
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="Margin/Layout/Body/PreviewPanel/Preview/Figure"]
+own_world_3d = true
+transparent_bg = true
+handle_input_locally = false
+msaa_3d = 2
+size = Vector2i(440, 480)
+render_target_update_mode = 4
+
+[node name="Environment" type="WorldEnvironment" parent="Margin/Layout/Body/PreviewPanel/Preview/Figure/Viewport"]
+environment = SubResource("stage_environment")
+
+[node name="Camera" type="Camera3D" parent="Margin/Layout/Body/PreviewPanel/Preview/Figure/Viewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 3.6)
+fov = 34.0
+
+[node name="Candle" type="OmniLight3D" parent="Margin/Layout/Body/PreviewPanel/Preview/Figure/Viewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 2.1, 1.5)
+light_color = Color(1, 0.74, 0.42, 1)
+light_energy = 2.4
+shadow_enabled = true
+omni_range = 7.0
+script = ExtResource("5_flicker")
+Depth = 0.18
+
+[node name="Rim" type="OmniLight3D" parent="Margin/Layout/Body/PreviewPanel/Preview/Figure/Viewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 1.8, -1.6)
+light_color = Color(0.5, 0.62, 0.85, 1)
+light_energy = 1.2
+omni_range = 6.0
+
+[node name="Floor" type="MeshInstance3D" parent="Margin/Layout/Body/PreviewPanel/Preview/Figure/Viewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.03, 0)
+mesh = SubResource("stage_floor_mesh")
+surface_material_override/0 = SubResource("stage_floor")
+
+[node name="Mannequin" parent="Margin/Layout/Body/PreviewPanel/Preview/Figure/Viewport" instance=ExtResource("4_mannequin")]
+unique_name_in_owner = true
+transform = Transform3D(-0.939693, 0, 0.34202, 0, 1, 0, -0.34202, 0, -0.939693, 0, 0, 0)
+TurnSpeed = 18.0
+
+[node name="Identity" type="HBoxContainer" parent="Margin/Layout/Body/PreviewPanel/Preview"]
+layout_mode = 2
+theme_override_constants/separation = 22
+
+[node name="Portrait" type="Control" parent="Margin/Layout/Body/PreviewPanel/Preview/Identity"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 250)
+layout_mode = 2
+script = ExtResource("3_portrait")
+
+[node name="AliasBox" type="VBoxContainer" parent="Margin/Layout/Body/PreviewPanel/Preview/Identity"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="AliasCaption" type="Label" parent="Margin/Layout/Body/PreviewPanel/Preview/Identity/AliasBox"]
+layout_mode = 2
+theme_type_variation = &"FaintLabel"
+text = "CC_ALIAS"
+horizontal_alignment = 1
+
+[node name="Alias" type="Label" parent="Margin/Layout/Body/PreviewPanel/Preview/Identity/AliasBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 38
+text = "ALIAS_NEEDLE"
+horizontal_alignment = 1
+
+[node name="AliasButtons" type="HBoxContainer" parent="Margin/Layout/Body/PreviewPanel/Preview/Identity/AliasBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="AliasPrev" type="Button" parent="Margin/Layout/Body/PreviewPanel/Preview/Identity/AliasBox/AliasButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+auto_translate_mode = 2
+text = "<"
+
+[node name="AliasNext" type="Button" parent="Margin/Layout/Body/PreviewPanel/Preview/Identity/AliasBox/AliasButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+auto_translate_mode = 2
+text = ">"
+
+[node name="Footer" type="HBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Back" type="Button" parent="Margin/Layout/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+text = "CC_BACK_MENU"
+
+[node name="Summary" type="Label" parent="Margin/Layout/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+auto_translate_mode = 2
+theme_type_variation = &"PerkLabel"
+text = "..."
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="Next" type="Button" parent="Margin/Layout/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+text = "CC_NEXT"

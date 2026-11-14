@@ -1,0 +1,90 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ai/Watchman.cs" id="1_watchman"]
+[ext_resource type="Script" path="res://scripts/world/TorchFlicker.cs" id="2_flicker"]
+[ext_resource type="FontFile" path="res://ui/fonts/IMFellEnglishSC-Regular.ttf" id="3_caps"]
+
+[sub_resource type="CapsuleShape3D" id="body_shape"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="gambeson"]
+albedo_color = Color(0.25, 0.14, 0.12, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="iron"]
+albedo_color = Color(0.33, 0.345, 0.36, 1)
+metallic = 0.7
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="flame"]
+albedo_color = Color(1, 0.78, 0.45, 1)
+emission_enabled = true
+emission = Color(1, 0.62, 0.25, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="CapsuleMesh" id="body_mesh"]
+radius = 0.33
+height = 1.5
+
+[sub_resource type="SphereMesh" id="helm_mesh"]
+radius = 0.2
+height = 0.4
+
+[sub_resource type="BoxMesh" id="nose_mesh"]
+size = Vector3(0.06, 0.2, 0.14)
+
+[sub_resource type="BoxMesh" id="lantern_mesh"]
+size = Vector3(0.14, 0.2, 0.14)
+
+[node name="Watchman" type="CharacterBody3D"]
+collision_layer = 4
+script = ExtResource("1_watchman")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("body_shape")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+mesh = SubResource("body_mesh")
+surface_material_override/0 = SubResource("gambeson")
+
+[node name="Helm" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.66, 0)
+mesh = SubResource("helm_mesh")
+surface_material_override/0 = SubResource("iron")
+
+[node name="Nasal" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, -0.2)
+mesh = SubResource("nose_mesh")
+surface_material_override/0 = SubResource("iron")
+
+[node name="Lantern" type="OmniLight3D" parent="." groups=["stealth_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.42, 1.05, -0.5)
+light_color = Color(1, 0.72, 0.38, 1)
+light_energy = 1.6
+shadow_enabled = true
+omni_range = 6.5
+script = ExtResource("2_flicker")
+Depth = 0.12
+
+[node name="Glass" type="MeshInstance3D" parent="Lantern"]
+cast_shadow = 0
+mesh = SubResource("lantern_mesh")
+surface_material_override/0 = SubResource("flame")
+
+[node name="Eyes" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)
+
+[node name="NavAgent" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.5
+target_desired_distance = 0.5
+
+[node name="Mark" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+billboard = 1
+no_depth_test = true
+font = ExtResource("3_caps")
+font_size = 160
+outline_size = 24
