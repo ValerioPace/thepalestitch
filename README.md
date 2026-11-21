@@ -41,6 +41,7 @@ Se il gioco resta fermo sulla prima schermata, il C# non è compilato: vedi [Tec
 |---|---|
 | [Technical Guide](docs/tech/TECHNICAL_GUIDE.md) | Fondamenti di Godot 4 .NET da zero, ogni sistema del gioco spiegato passo passo, ricette, diagnosi |
 | [Architettura](docs/tech/ARCHITECTURE.md) | Moduli, dipendenze, flussi a runtime, configurazione, decisioni |
+| [Piano dei task](docs/PLAN.md) | Iterazioni, ciclo di lavoro agentico, registro delle decisioni |
 | [Backlog](docs/BACKLOG.md) | Difetti, change request e integrazioni nice to have, con priorità e stime |
 | [Changelog](CHANGELOG.md) | Storia delle versioni |
 | [Design: prologo, video, schermate](docs/design/01-prologo-video-schermate.md) | Premessa narrativa, flusso delle schermate, creazione del personaggio, prologo |

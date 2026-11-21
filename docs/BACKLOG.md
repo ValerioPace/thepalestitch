@@ -28,7 +28,7 @@ Le stime sono riferite al lavoro di sviluppo con il supporto di Claude, escluse 
 | FIX-002 | Scatti visivi su monitor oltre 60 Hz | FIX | P2 | S | Aperta |
 | FIX-003 | Un rumore può abbassare il sospetto della guardia | FIX | P2 | XS | Aperta |
 | FIX-004 | La campana cancella le istruzioni della serratura | FIX | P2 | S | Aperta |
-| FIX-005 | Bloccare l'input rende il personaggio meno visibile | FIX | P3 | S | Decisione richiesta |
+| FIX-005 | Bloccare l'input rende il personaggio meno visibile | FIX | P3 | S | Aperta |
 | FIX-006 | Formula del mascheramento sonoro duplicata | FIX | P3 | XS | Aperta |
 | FIX-007 | Rumori e raycast eseguiti fuori dal passo fisico | FIX | P3 | S | Aperta |
 | FIX-008 | Cambi scena persi ed eccezioni silenziose | FIX | P3 | S | Aperta |
@@ -51,13 +51,19 @@ Le stime sono riferite al lavoro di sviluppo con il supporto di Claude, escluse 
 | CR-012 | Fissare la versione dell'SDK | CR | P3 | XS | Aperta |
 | CR-013 | Gamepad e navigazione dei menu da tastiera | CR | P3 | M | Aperta |
 | CR-014 | Livelli guidati da dati: trigger, obiettivi, eventi | CR | P2 | L | Aperta |
-| CR-015 | IA delle guardie, seconda versione | CR | P2 | L | Aperta |
+| CR-015 | IA delle guardie, seconda versione (epica) | CR | P2 | L | Aperta |
 | CR-016 | Mesh di navigazione calcolata nell'editor | CR | P4 | XS | Aperta |
 | CR-017 | Registro delle luci per il sensore | CR | P4 | S | Aperta |
 | CR-018 | Doti dei mestieri e abilità Lama, Veleno, Nerbo | CR | P2 | L | Aperta |
 | CR-019 | Modelli, animazioni e ritratti definitivi | CR | P2 | XL | Aperta |
 | CR-020 | Pannello di debug della furtività | CR | P2 | S | Aperta |
 | CR-021 | Chiudere i percorsi che aggirano la ronda del prologo | CR | P1 | S | Chiusa |
+| CR-022 | Furtivo a interruttore | CR | P1 | XS | Aperta |
+| CR-023 | Percezione per parti del corpo | CR | P1 | M | Aperta |
+| CR-024 | Visione periferica e sguardi della guardia | CR | P1 | M | Decisione richiesta |
+| CR-025 | Allerta che cresce con il tempo | CR | P1 | M | Decisione richiesta |
+| CR-026 | Ronda adattiva e ricerca nei vicoli | CR | P1 | M | Decisione richiesta |
+| CR-027 | Test di giocabilità automatici | CR | P1 | M | Aperta |
 | NTH-001 | Menu opzioni | NTH | P3 | M | Aperta |
 | NTH-002 | Accessibilità | NTH | P3 | M | Aperta |
 | NTH-003 | Livelli di difficoltà | NTH | P4 | S | Aperta |
@@ -69,13 +75,9 @@ Le stime sono riferite al lavoro di sviluppo con il supporto di Claude, escluse 
 | NTH-009 | Integrazione con una piattaforma di distribuzione | NTH | P4 | M | Aperta |
 | NTH-010 | Saltare il prologo per i giocatori esperti | NTH | P4 | S | Decisione richiesta |
 
-## Ordine di lavoro consigliato
+## Ordine di lavoro
 
-1. **Correttezza** (≈ 1 giornata): FIX-001, FIX-003, FIX-004, FIX-006, FIX-010, FIX-011, FIX-012.
-2. **Fondamenta** (≈ 1 settimana): CR-012, CR-008, CR-011, CR-020, FIX-002, FIX-007, FIX-008. Da qui in poi ogni modifica è verificata da test e dal pannello di debug.
-3. **Decisioni** sulle voci in stato *Decisione richiesta*.
-4. **Contenuto del prologo**: CR-001, CR-003, CR-004, poi CR-005 e CR-018.
-5. **Scalabilità**: CR-010, CR-014, CR-015, CR-002.
+La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna, è nel [Piano dei task](PLAN.md).
 
 ---
 
@@ -142,7 +144,7 @@ Le stime sono riferite al lavoro di sviluppo con il supporto di Claude, escluse 
 
 **Problema.** Quando `InputLocked` è vero (serratura, prima persona libera, cattura) l'andatura diventa *Furtivo* e la visibilità viene moltiplicata per 0,75. Scassinare rende quindi più difficili da vedere, ed è un effetto collaterale non dichiarato.
 
-**Decisione richiesta.** Chi scassina dev'essere più visibile, meno visibile o neutro? Proposta: un'andatura esplicita *Al lavoro* con un proprio fattore (ad esempio 1,0) e un proprio rumore, invece di riusare *Furtivo*.
+**Decisione** (D-03, 21 novembre 2026): visibilità neutra, ×1,0. Si implementa insieme a CR-022 con uno stato "in azione" separato dall'andatura.
 
 **Criteri di accettazione.** Il fattore di visibilità durante un'azione in prima persona è quello deciso e configurabile dall'Inspector.
 
@@ -386,18 +388,111 @@ Le opzioni 2 e 3 sono complementari (la 3 serve comunque per gli interni del mer
 
 **Proposta.** Componenti riusabili configurati nell'editor: `TutorialTrigger` (area che mostra un suggerimento), `ObjectiveTracker`, `AmbientNoiseSource` (la campana come nodo con inviluppo configurabile), `LevelExit`. La classe del livello si riduce a collegare questi componenti, o sparisce.
 
-### CR-015 · IA delle guardie, seconda versione
+### CR-015 · IA delle guardie, seconda versione (epica)
 
 | Tipo | Priorità | Stima |
 |---|---|---|
 | CR | P2 | L |
 
-**Proposta.**
+**Contenuto.** La parte più urgente è stata separata in CR-023 (percezione per parti del corpo), CR-024 (visione periferica e sguardi), CR-025 (allerta nel tempo) e CR-026 (ronda adattiva). Restano qui:
 - Stati in più: *Ricerca* (dopo aver perso di vista il giocatore, controlla i nascondigli vicini), *Ritorno* alla ronda, *Allerta* (dopo un'indagine resta più attenta per un po').
 - Comunicazione tra guardie: chi dà l'allarme lo propaga a quelle che lo sentono.
 - Filtro dei rumori per tipo e sorgente: i passi di un'altra guardia non devono far indagare.
 - Ronde con tempi d'attesa e direzioni dello sguardo per ogni tappa.
 - Separare la logica in una macchina a stati esplicita (una classe per stato) testabile.
+
+### CR-022 · Furtivo a interruttore
+
+| Tipo | Priorità | Stima | Origine |
+|---|---|---|---|
+| CR | P1 | XS | Playtest del committente, 21 novembre 2026 |
+
+**Richiesta.** Il furtivo non si mantiene tenendo premuto Ctrl o C: si attiva con una pressione e resta attivo finché il giocatore non preme di nuovo. La corsa resta *tenuta premuta*: è un'azione consapevolmente rischiosa.
+
+**Specifica.**
+- Azione `sneak` in modalità interruttore; lo stato è mostrato dall'HUD (già presente: *Furtivo* / *Al passo*).
+- L'andatura imposta dal giocatore è separata dallo stato "bloccato in un'azione": chiude anche FIX-005.
+- Tenendo Shift si corre; al rilascio si torna nel furtivo scelto (decisione D-04).
+- Durante un'azione in prima persona la visibilità è neutra, ×1,0 (decisione D-03).
+
+**Criteri di accettazione.** Una pressione di C attiva il furtivo, una seconda lo disattiva; rilasciare il tasto non cambia nulla; durante la serratura l'andatura memorizzata non viene persa.
+
+### CR-023 · Percezione per parti del corpo
+
+| Tipo | Priorità | Stima | Origine |
+|---|---|---|---|
+| CR | P1 | M | Playtest del committente, 21 novembre 2026 |
+
+**Problema.** La guardia controlla un solo punto (il petto) con un solo raggio, e usa una visibilità media del personaggio. Una spalla illuminata che sporge da un riparo non esiste per lei.
+
+**Richiesta.** La guardia può cogliere un riflesso di luce su una spalla o su una gamba. Vedere il busto in luce produce un **allarme immediato**, non un sospetto graduale.
+
+**Specifica.**
+- Punti del corpo campionati: testa, busto, spalla sinistra e destra, anca, ginocchio sinistro e destro. In furtivo i punti si abbassano con la postura.
+- Per ogni punto: linea di vista dagli occhi della guardia (raycast) e luce in quel punto (il `LightSensor` misura per punto invece che in media).
+- **Busto** visibile e illuminato sopra soglia nel cono focale → **allarme istantaneo**: la guardia riconosce il volto, è game over (decisione D-05).
+- **Spalla, braccio o gamba** visibili e illuminati → **forte sospetto, non certezza**. La guardia ha un tempo di reazione reale (non sa se ha visto un ladro o un bagliore), ma è in tensione: cambia lo schema della ronda e gira bruscamente la testa verso vicoli e nascondigli (CR-024, CR-026).
+- Costume e abilità Ombra agiscono sulla soglia di ogni punto, come oggi sul totale.
+
+**Criteri di accettazione.** Scenari automatici: busto in luce a 6 m davanti → allarme; solo spalla in luce dietro uno spigolo → sospetto e rotazione verso lo spigolo; tutto in ombra e accovacciato → nessuna reazione.
+
+### CR-024 · Visione periferica e sguardi della guardia
+
+| Tipo | Priorità | Stima | Origine |
+|---|---|---|---|
+| CR | P1 | M | Playtest del committente, 21 novembre 2026 |
+
+**Problema misurato.** Con le regole attuali un personaggio **fermo**, anche in piedi e illuminato dalla lanterna, è invisibile se sta di fianco o dietro la guardia oltre 1,3 m: fermo non fa rumore, e l'andatura conta solo dentro il cono di 76°. Avvicinandosi camminando, invece, la guardia lo sente a circa 4,5 m e lo scopre in mezzo secondo (prova del 21 novembre 2026).
+
+**Specifica.**
+- **Visione periferica:** un secondo cono, ampio (circa ±100°) e corto (circa 6 m), che non dà allarmi: coglie movimento e riflessi, e fa voltare la guardia.
+- **Sguardi spontanei:** durante ronda e soste la guardia si gira a guardare indietro o di lato. La frequenza è casuale ma cresce con il tempo trascorso e con l'allerta (CR-025).
+- **Preavviso:** prima di voltarsi la guardia si ferma per una frazione di secondo e alza la lanterna. È ciò che rende la difficoltà leggibile e quindi "non impossibile" (D-06).
+- Stare in piedi e illuminati a pochi metri da una guardia non è mai sicuro; accovacciati nell'ombra lo è per poco.
+
+**Criteri di accettazione.** Scenario: giocatore fermo e in piedi a 2 m dietro la guardia, nel cono della lanterna → scoperto entro un tempo massimo da definire (D-06); stesso scenario accovacciato nell'ombra → sopravvive almeno al primo sguardo, se si allontana nel preavviso.
+
+### CR-025 · Allerta che cresce con il tempo
+
+| Tipo | Priorità | Stima | Origine |
+|---|---|---|---|
+| CR | P1 | M | Playtest del committente, 21 novembre 2026 |
+
+**Richiesta.** Se il giocatore se la prende troppo comoda, il rischio che la guardia si volti e lo veda dev'essere reale e aumentare nel tempo.
+
+**Specifica.** Un livello di **allerta** per guardia, distinto dal sospetto istantaneo:
+- sale lentamente con il tempo passato nel livello (dopo un periodo di grazia), con ogni rumore sentito, con ogni riflesso colto; scende molto lentamente;
+- governa frequenza degli sguardi, ampiezza dei coni, guadagno della vista e comportamento della ronda (CR-026);
+- modello continuo o a gradini: decisione D-07.
+
+**Criteri di accettazione.** Con un percorso fisso, la probabilità di essere scoperti misurata dal test automatico (CR-027) cresce con il ritardo con cui il percorso viene eseguito.
+
+### CR-026 · Ronda adattiva e ricerca nei vicoli
+
+| Tipo | Priorità | Stima | Origine |
+|---|---|---|---|
+| CR | P1 | M | Playtest del committente, 21 novembre 2026 |
+
+**Richiesta.** Una guardia insospettita allunga la ronda; con forti sospetti entra nei vicoli.
+
+**Specifica.**
+- Livelli di comportamento legati all'allerta: *calmo* (ronda normale), *inquieto* (soste più lunghe, sguardi frequenti), *sospettoso* (ronda estesa con tappe aggiuntive), *in caccia* (perlustra i nascondigli: vicolo, dietro il carro, angoli bui).
+- Le tappe aggiuntive e i punti di perlustrazione sono dati del livello (marcatori nella scena) o calcolati: decisione D-08.
+- Entrando in un vicolo la guardia lo illumina con la lanterna: il nascondiglio diventa una trappola se il giocatore ci resta.
+
+**Criteri di accettazione.** Nel prologo, con allerta *in caccia*, la guardia percorre il vicolo fino al fondo; con allerta *calmo* non ci entra mai.
+
+### CR-027 · Test di giocabilità automatici
+
+| Tipo | Priorità | Stima |
+|---|---|---|
+| CR | P1 | M |
+
+**Scopo.** Misurare la regola "difficile, non impossibile" invece di affidarsi alla sensazione. Un "giocatore automatico" esegue percorsi scritti nel livello, senza finestra, molte volte con semi casuali diversi:
+- **percorso di riferimento**, eseguito con la tempistica giusta: deve riuscire in almeno una percentuale stabilita (D-09);
+- **percorsi negligenti** (in piedi nella luce, troppo lento, dentro il cono): devono fallire quasi sempre.
+
+Il risultato è un piccolo rapporto con percentuali di successo e tempo medio. Fa parte della verifica di ogni modifica all'IA. Si appoggia a CR-011 e riprende gli scenari già usati nelle analisi del 21 novembre 2026.
 
 ### CR-016 · Mesh di navigazione calcolata nell'editor
 
@@ -488,7 +583,6 @@ Voci che non possono partire senza una scelta del committente.
 | Voce | Domanda |
 |---|---|
 | CR-001 | Quale soluzione per gli edifici che coprono il personaggio: sagoma, muri trasparenti, tetti che si scoperchiano, o una combinazione? |
-| FIX-005 | Durante un'azione in prima persona il personaggio dev'essere più visibile, meno visibile o neutro? |
 | NTH-004 | Il volto scelto resta solo estetico o cambia le reazioni dei personaggi? |
 | CR-006 | Salvataggio libero o solo a punti di controllo? |
 | NTH-010 | Il giocatore esperto può saltare il prologo? (da decidere a prologo completo) |

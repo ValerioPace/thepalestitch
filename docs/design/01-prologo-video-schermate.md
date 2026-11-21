@@ -239,6 +239,21 @@ Limite noto: il suono viaggia in linea retta e non gira gli angoli. Una porta ap
 - La sua lanterna è una luce come le altre: passandoti accanto ti illumina.
 - La rete di navigazione si calcola da sola all'avvio del livello, a partire dai muri.
 
+### Il principio della furtività
+
+> **Difficile, non impossibile, e nessuna stupidità degli avversari.**
+> — committente, 21 novembre 2026
+
+Regole che ne derivano, e che ogni modifica all'IA deve rispettare:
+
+1. **Nessun punto cieco comodo.** Stare in piedi e illuminati a pochi metri da una guardia non è mai sicuro, nemmeno alle sue spalle. Le guardie si guardano attorno.
+2. **Basta poco per essere colti.** Il busto in luce nel cono della guardia è un allarme istantaneo: il volto è riconosciuto, è game over. Una spalla, un braccio o una gamba in luce generano un forte sospetto ma non una certezza: la guardia ha un tempo di reazione reale (un ladro o un bagliore?), ma è in tensione perché sorveglia e nulla la distrae. Cambia la ronda e gira bruscamente la testa verso vicoli e nascondigli.
+3. **Il tempo è un avversario.** Più il giocatore indugia, più la guardia diventa attenta: si volta più spesso, allunga la ronda, con forti sospetti entra nei vicoli.
+4. **Ogni minaccia si legge.** Prima di voltarsi la guardia dà un preavviso; un sospetto si vede dal segno sopra la testa e dal suo comportamento. Il giocatore perde per un errore suo, mai per un dado truccato.
+5. **La riuscita si misura.** Esiste sempre un percorso, eseguito bene e con la tempistica giusta, che porta a termine il livello; un giocatore automatico lo verifica a ogni modifica (CR-027).
+
+**Stato attuale rispetto al principio** (prove del 21 novembre 2026): avvicinarsi camminando funziona come deve, perché la guardia sente i passi a circa 4,5 m e scopre il giocatore in mezzo secondo. Ma un personaggio **fermo** di fianco o dietro la guardia, anche in piedi e illuminato dalla lanterna, resta invisibile per sempre: oltre 1,3 m la guardia vede solo nel cono frontale di 76°, e chi è fermo non fa rumore. Le voci CR-022…CR-027 del backlog correggono questo scarto.
+
 ---
 
 ## 7. Schermata di gioco
