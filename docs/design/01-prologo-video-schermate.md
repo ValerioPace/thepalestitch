@@ -7,7 +7,9 @@ Stato del progetto: Godot 4.7.2 .NET, C#, rendering Forward+, mondo 3D con camer
 
 ---
 
-## 1. Premessa narrativa [proposta]
+## 1. Premessa narrativa
+
+**Confermata il 21 novembre 2026.** I capitoli successivi la approfondiranno, anche in modo interattivo, in base alle scelte del protagonista e alle abilità che affina.
 
 | Elemento | Proposta |
 |---|---|
@@ -169,7 +171,20 @@ Una strada da ovest a est. A nord case alte che gettano ombra sulla strada; a su
 - **Guardia**: un uomo della ronda con lanterna, su un giro di quattro punti (`PatrolRound`, spostabili).
 - **Campana**: ogni 32 secondi suona per 7. Finché suona i passi portano fino al 60% in meno.
 
+- **Perimetro chiuso**: la sola area calpestabile è la strada, il vicolo (cieco, un nascondiglio) e il cortile del mercante, raggiungibile solo dal cancello. Le fessure tra le case e i fianchi del cortile sono murati (vedi §5.1).
+
 Farsi vedere fa ricominciare la scena. Aprire la serratura chiude il graybox e riporta al menu.
+
+Il prologo è anche il **tutorial per i principianti**. Se permettere ai giocatori esperti di saltarlo per intero si deciderà più avanti (NTH-010 nel backlog).
+
+### 5.1 Principi di level design
+
+1. **Nessuna scorciatoia che aggiri la sfida.** Ogni livello ha un percorso pensato attorno alla sua prova (qui: passare sotto la ronda). Un giro alternativo che la evita non è ammesso, per quanto astuto. Se un percorso alternativo esiste, è perché è stato progettato come tale, con la sua sfida.
+2. **Il perimetro si chiude con muri, non con barriere invisibili.** Il giocatore deve capire dove può andare guardando il mondo.
+3. **Ciò che sta oltre il perimetro non si costruisce.** Le aree irraggiungibili restano vuote: nessun dettaglio, nessuna luce, nessun costo di produzione o di rendering.
+4. **Il perimetro si verifica, non si presume.** Prima di chiudere un livello si calcola la mappa dell'area raggiungibile dal punto di partenza e la si confronta con quella progettata.
+
+Applicazione al prologo: la verifica sulla versione 0.0.1 ha mostrato che dal punto di partenza si raggiungevano 2.713 m², cioè quasi tutto il terreno, comprese le aree dietro le case e i fianchi del cortile. Dopo la chiusura di quattro varchi (estremità ovest, fondo del vicolo, fessura tra la casa centrale e quella a est, fianchi del cortile) l'area raggiungibile è di 382 m²: strada, vicolo e cortile.
 
 ---
 
@@ -299,7 +314,7 @@ Dove si cambia cosa:
 
 Da decidere:
 
-1. **La premessa** del capitolo 1 (Harrowmere, 1352, il punto sotto il colletto) va bene o va cambiata?
+1. ~~**La premessa**~~ — confermata il 21 novembre 2026.
 2. **Le doti dei mestieri** bastano come differenza, o si vuole anche un albero di crescita durante il gioco?
 3. **Il volto** deve restare solo estetico, o cambiare le reazioni dei personaggi (un marchiato riconosciuto dalle guardie)?
 4. **Edifici che coprono il personaggio** nella vista isometrica: oggi si ruota la camera. In alternativa, muri che diventano trasparenti o tetti che si scoperchiano.

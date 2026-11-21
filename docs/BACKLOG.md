@@ -7,7 +7,7 @@
 | Data | 21 novembre 2026 |
 | Documenti collegati | [Architettura](tech/ARCHITECTURE.md) · [Technical Guide](tech/TECHNICAL_GUIDE.md) · [Changelog](../CHANGELOG.md) · [Design](design/01-prologo-video-schermate.md) |
 
-Elenco unico di tutto il lavoro da fare sul software, nato dall'analisi della bozza 0.0.1. Nessuna voce è ancora stata implementata: il codice è com'era al commit `b5b2eec`.
+Elenco unico di tutto il lavoro da fare sul software, nato dall'analisi della bozza 0.0.1. Le voci chiuse riportano data e verifica; le altre si riferiscono al codice del commit `b5b2eec`.
 
 ## Legenda
 
@@ -39,7 +39,7 @@ Le stime sono riferite al lavoro di sviluppo con il supporto di Claude, escluse 
 | FIX-013 | Percorso della guardia ricalcolato a ogni passo fisico | FIX | P4 | S | Aperta |
 | CR-001 | Edifici che coprono il personaggio | CR | P1 | M | Decisione richiesta |
 | CR-002 | Suono che gira gli angoli e passa dalle porte | CR | P2 | L | Aperta |
-| CR-003 | Interno della casa del mercante (prologo D–G) | CR | P1 | L | Decisione richiesta |
+| CR-003 | Interno della casa del mercante (prologo D–G) | CR | P1 | L | Aperta |
 | CR-004 | Serratura come minigioco in prima persona | CR | P2 | M | Aperta |
 | CR-005 | Uccisione silenziosa e trasporto dei corpi | CR | P2 | L | Aperta |
 | CR-006 | Salvataggio e "Riprendi" | CR | P2 | M | Aperta |
@@ -57,6 +57,7 @@ Le stime sono riferite al lavoro di sviluppo con il supporto di Claude, escluse 
 | CR-018 | Doti dei mestieri e abilità Lama, Veleno, Nerbo | CR | P2 | L | Aperta |
 | CR-019 | Modelli, animazioni e ritratti definitivi | CR | P2 | XL | Aperta |
 | CR-020 | Pannello di debug della furtività | CR | P2 | S | Aperta |
+| CR-021 | Chiudere i percorsi che aggirano la ronda del prologo | CR | P1 | S | Chiusa |
 | NTH-001 | Menu opzioni | NTH | P3 | M | Aperta |
 | NTH-002 | Accessibilità | NTH | P3 | M | Aperta |
 | NTH-003 | Livelli di difficoltà | NTH | P4 | S | Aperta |
@@ -66,6 +67,7 @@ Le stime sono riferite al lavoro di sviluppo con il supporto di Claude, escluse 
 | NTH-007 | Altre lingue | NTH | P4 | S | Aperta |
 | NTH-008 | Modalità foto | NTH | P4 | S | Aperta |
 | NTH-009 | Integrazione con una piattaforma di distribuzione | NTH | P4 | M | Aperta |
+| NTH-010 | Saltare il prologo per i giocatori esperti | NTH | P4 | S | Decisione richiesta |
 
 ## Ordine di lavoro consigliato
 
@@ -269,13 +271,13 @@ Le opzioni 2 e 3 sono complementari (la 3 serve comunque per gli interni del mer
 
 | Tipo | Priorità | Stima | Stato |
 |---|---|---|---|
-| CR | P1 | L | Decisione richiesta |
+| CR | P1 | L | Aperta |
 
 **Contesto.** Il graybox finisce alla serratura. Il design prevede: scale che scricchiolano, buco della serratura, il mercante già morto con la bocca cucita, il cadavere che gira la testa, la trappola della ronda, la fuga dai tetti.
 
 **Dipendenze.** CR-001 (opzione 3) per gli interni, CR-004 per la serratura, una prima versione dell'arrampicata per la fuga.
 
-**Decisione richiesta.** Conferma della premessa narrativa (Harrowmere, 1352, il punto pallido) nel [documento di design](design/01-prologo-video-schermate.md).
+**Premessa narrativa** confermata il 21 novembre 2026 (vedi il [documento di design](design/01-prologo-video-schermate.md)). Resta da scegliere la soluzione di CR-001 per gli interni.
 
 ### CR-004 · Serratura come minigioco in prima persona
 
@@ -439,6 +441,27 @@ Le opzioni 2 e 3 sono complementari (la 3 serve comunque per gli interni del mer
 
 **Proposta.** Con F3 (solo nelle build di debug): valori numerici di esposizione per ciascun punto di campionamento, raggi di rumore, cono visivo e sospetto di ogni guardia disegnati nel mondo, raycast di luce e vista come linee colorate. Indispensabile per tarare luce e suono, e il modo più rapido per **vedere** gli algoritmi della Technical Guide al lavoro.
 
+### CR-021 · Chiudere i percorsi che aggirano la ronda del prologo
+
+| Tipo | Priorità | Stima | Stato |
+|---|---|---|---|
+| CR | P1 | S | **Chiusa** il 21 novembre 2026 |
+
+**Richiesta.** Nessuna scorciatoia: il giocatore non deve poter aggirare il cortile e la ronda per arrivare alla serratura. Si chiude con muri, e le aree escluse non si costruiscono (principi di level design, §5.1 del documento di design).
+
+**Analisi.** Calcolando la mesh di navigazione per un agente delle dimensioni del giocatore e cercando i percorsi dal punto di partenza, risultavano raggiungibili 2.713 m²: quasi tutto il terreno. Varchi trovati:
+1. estremità ovest della strada, tra il muro di testa e la prima casa;
+2. fondo del vicolo, aperto verso il retro delle case;
+3. fessura di 2 m tra la casa centrale e quella a est;
+4. fianchi del cortile, chiusi solo da muretti corti di 1,6 m che lasciavano passare ai lati.
+
+**Soluzione.** In `thepalestitch_prologue.tscn`, sotto `World`: tre nuovi corpi (`WestOutbuilding`, `AlleyEnd`, `LeanTo`) e due muri del cortile ridisegnati alti 3,5 m (`YardWallWest` da 0,5 × 5 m a 2 × 8 m, `YardWallEast` da 0,5 × 5 m a 2 × 13 m, fino al muro di testa est).
+
+**Verifica.**
+- Area raggiungibile dopo la modifica: 382 m², solo strada, vicolo cieco e cortile, con il cortile raggiungibile solo dal cancello.
+- Nel gioco: spingendo il personaggio verso il vecchio varco del cortile, scivola lungo la facciata e non passa.
+- Serratura, ronda della guardia e tutorial invariati; compilazione senza errori né avvisi.
+
 ---
 
 ## NTH — Nice to have
@@ -454,6 +477,7 @@ Le opzioni 2 e 3 sono complementari (la 3 serve comunque per gli interni del mer
 | NTH-007 | Altre lingue | Francese, tedesco, spagnolo; il pulsante della lingua diventa una lista | P4 | S |
 | NTH-008 | Modalità foto | Camera libera a gioco fermo, filtri in stile incisione | P4 | S |
 | NTH-009 | Piattaforma di distribuzione | Obiettivi e salvataggi nel cloud, ad esempio con Steam | P4 | M |
+| NTH-010 | Saltare il prologo | Il prologo è il tutorial per i principianti; un giocatore esperto potrebbe saltarlo per intero, partendo dal capitolo 1 con un personaggio già creato. **Decisione richiesta** più avanti, quando il prologo sarà completo | P4 | S |
 
 ---
 
@@ -463,8 +487,8 @@ Voci che non possono partire senza una scelta del committente.
 
 | Voce | Domanda |
 |---|---|
-| CR-003 | La premessa narrativa (Harrowmere, 1352, il punto pallido sotto il colletto) è confermata? |
 | CR-001 | Quale soluzione per gli edifici che coprono il personaggio: sagoma, muri trasparenti, tetti che si scoperchiano, o una combinazione? |
 | FIX-005 | Durante un'azione in prima persona il personaggio dev'essere più visibile, meno visibile o neutro? |
 | NTH-004 | Il volto scelto resta solo estetico o cambia le reazioni dei personaggi? |
 | CR-006 | Salvataggio libero o solo a punti di controllo? |
+| NTH-010 | Il giocatore esperto può saltare il prologo? (da decidere a prologo completo) |

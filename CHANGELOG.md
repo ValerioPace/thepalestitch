@@ -17,6 +17,9 @@ Categorie: **Aggiunto** per nuove funzioni, **Modificato** per cambiamenti a fun
 - Questo changelog.
 
 ### Modificato
+- **Prologo, perimetro del livello** (CR-021): chiusi i quattro varchi che permettevano di aggirare la ronda passando dietro le case o ai lati del cortile. Nuovi corpi `WestOutbuilding`, `AlleyEnd`, `LeanTo`; muri del cortile `YardWallWest` e `YardWallEast` alti 3,5 m. L'area raggiungibile passa da 2.713 a 382 m²; il vicolo resta come nascondiglio cieco.
+- Documento di design: premessa narrativa confermata; nuovi principi di level design (§5.1).
+- Backlog: CR-021 chiusa, aggiunta NTH-010 (saltare il prologo), CR-003 non più in attesa della premessa.
 - README: prerequisiti (.NET SDK 10) e indice dei documenti.
 - `project.godot` riformattato dall'editor di Godot all'apertura del progetto: stessa configurazione, formattazione diversa delle azioni di input; la riga `locale/fallback="en"` è stata rimossa perché uguale al valore predefinito.
 

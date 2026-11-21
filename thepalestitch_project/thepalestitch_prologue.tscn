@@ -104,17 +104,35 @@ size = Vector3(10, 7, 8)
 [sub_resource type="BoxShape3D" id="merchanthouse_shape"]
 size = Vector3(10, 7, 8)
 
+[sub_resource type="BoxMesh" id="westoutbuilding_mesh"]
+size = Vector3(2, 4, 8)
+
+[sub_resource type="BoxShape3D" id="westoutbuilding_shape"]
+size = Vector3(2, 4, 8)
+
+[sub_resource type="BoxMesh" id="alleyend_mesh"]
+size = Vector3(3, 4.5, 0.5)
+
+[sub_resource type="BoxShape3D" id="alleyend_shape"]
+size = Vector3(3, 4.5, 0.5)
+
+[sub_resource type="BoxMesh" id="leanto_mesh"]
+size = Vector3(2, 4, 8)
+
+[sub_resource type="BoxShape3D" id="leanto_shape"]
+size = Vector3(2, 4, 8)
+
 [sub_resource type="BoxMesh" id="yardwallwest_mesh"]
-size = Vector3(0.5, 1.6, 5)
+size = Vector3(2, 3.5, 8)
 
 [sub_resource type="BoxShape3D" id="yardwallwest_shape"]
-size = Vector3(0.5, 1.6, 5)
+size = Vector3(2, 3.5, 8)
 
 [sub_resource type="BoxMesh" id="yardwalleast_mesh"]
-size = Vector3(0.5, 1.6, 5)
+size = Vector3(2, 3.5, 13)
 
 [sub_resource type="BoxShape3D" id="yardwalleast_shape"]
-size = Vector3(0.5, 1.6, 5)
+size = Vector3(2, 3.5, 13)
 
 [sub_resource type="BoxMesh" id="yardwallsouthwest_mesh"]
 size = Vector3(3.5, 1.6, 0.5)
@@ -259,8 +277,38 @@ surface_material_override/0 = SubResource("merchant")
 [node name="Shape" type="CollisionShape3D" parent="World/MerchantHouse"]
 shape = SubResource("merchanthouse_shape")
 
+[node name="WestOutbuilding" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 2, -7)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/WestOutbuilding"]
+mesh = SubResource("westoutbuilding_mesh")
+surface_material_override/0 = SubResource("wall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/WestOutbuilding"]
+shape = SubResource("westoutbuilding_shape")
+
+[node name="AlleyEnd" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.5, 2.25, -10.75)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/AlleyEnd"]
+mesh = SubResource("alleyend_mesh")
+surface_material_override/0 = SubResource("wall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/AlleyEnd"]
+shape = SubResource("alleyend_shape")
+
+[node name="LeanTo" type="StaticBody3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, -7)
+
+[node name="Mesh" type="MeshInstance3D" parent="World/LeanTo"]
+mesh = SubResource("leanto_mesh")
+surface_material_override/0 = SubResource("wall")
+
+[node name="Shape" type="CollisionShape3D" parent="World/LeanTo"]
+shape = SubResource("leanto_shape")
+
 [node name="YardWallWest" type="StaticBody3D" parent="World"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.75, 0.8, -5.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 1.75, -7)
 
 [node name="Mesh" type="MeshInstance3D" parent="World/YardWallWest"]
 mesh = SubResource("yardwallwest_mesh")
@@ -270,7 +318,7 @@ surface_material_override/0 = SubResource("lowwall")
 shape = SubResource("yardwallwest_shape")
 
 [node name="YardWallEast" type="StaticBody3D" parent="World"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.25, 0.8, -5.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 1.75, -9.5)
 
 [node name="Mesh" type="MeshInstance3D" parent="World/YardWallEast"]
 mesh = SubResource("yardwalleast_mesh")

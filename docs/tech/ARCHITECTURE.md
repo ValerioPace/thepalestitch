@@ -400,7 +400,8 @@ Prologue (Node3D, PrologueLevel)
 ├── Environment (WorldEnvironment)           notte, nebbia, glow
 ├── Moon (DirectionalLight3D)                gruppo "stealth_light"
 ├── World (NavigationRegion3D)               tutto ciò che è solido; sorgente del navmesh
-│   └── Ground, case, muri, ripari, porta    StaticBody3D su layer 1
+│   └── Ground, case, muri, ripari, porta,   StaticBody3D su layer 1
+│       chiusure del perimetro (CR-021)
 ├── Surfaces (Node3D)
 │   └── Straw, GravelStreet, GravelYard,     SurfaceZone su layer 5, mask 2
 │       YardPlanks (priority 1), AlleyMud
