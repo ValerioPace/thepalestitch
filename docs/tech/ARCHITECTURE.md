@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Versione del documento | 1.0 |
-| Versione del software descritta | 0.0.1 (graybox del prologo), commit `b5b2eec` sul branch `develop` |
+| Versione del documento | 1.1 |
+| Versione del software descritta | 0.0.1 + iterazione 1 (branch `feature/iterazione-1`) |
 | Data | 21 novembre 2026 |
 | Documenti collegati | [Technical Guide](TECHNICAL_GUIDE.md) · [Backlog](../BACKLOG.md) · [Changelog](../../CHANGELOG.md) · [Design: prologo, video, schermate](../design/01-prologo-video-schermate.md) |
 
@@ -33,7 +33,8 @@ The Pale Stitch è un gioco stealth in 3D con camera isometrica e passaggi in pr
 | Motore | Godot 4.7.2, edizione .NET | `X:/Installations/Godot_v4.7.2-stable_mono_win64` |
 | Linguaggio | C# 12 | Nessuno script GDScript nel gioco |
 | Framework .NET compilato | `net8.0` | Godot avvia il runtime .NET con la propria configurazione (`GodotPlugins.runtimeconfig.json`, `rollForward: LatestMajor`) e vi carica la DLL del gioco: per questo gira anche dove è installato solo il runtime .NET 10 |
-| SDK necessario per compilare | .NET SDK 10 | Lo richiede l'editor di Godot 4.7.2 (vedi Technical Guide §9.6) |
+| SDK necessario per compilare | .NET SDK 10 | Lo richiede l'editor di Godot 4.7.2 (vedi Technical Guide §9.6); `global.json` lo impone a tutta la soluzione |
+| Test | Progetto `tests/ThePaleStitch.Tests` (unitari) + banco di scenari in Godot | Technical Guide §29 |
 | Fisica | Jolt Physics | Impostazione `physics/3d/physics_engine` |
 | Rendering | Forward+, Direct3D 12 su Windows | `rendering_device/driver.windows="d3d12"` |
 | Risoluzione di riferimento | 1920×1080, finestra iniziale 1600×900 | Stretch `canvas_items`, aspect `expand` |
@@ -45,7 +46,7 @@ The Pale Stitch è un gioco stealth in 3D con camera isometrica e passaggi in pr
 
 ## 3. Vista d'insieme
 
-Il codice è diviso in otto namespace, uno per cartella sotto `scripts/`. Si possono leggere come strati, dal più generico al più specifico:
+Il codice del gioco è diviso in nove namespace, uno per cartella sotto `scripts/`, più un decimo (`Dev`) per gli strumenti di sviluppo. Si possono leggere come strati, dal più generico al più specifico:
 
 ```mermaid
 flowchart TB
@@ -63,6 +64,7 @@ flowchart TB
     end
     subgraph Dominio
         Character["Character<br/>CharacterCatalog, CharacterProfile"]
+        Rules["Rules (puro, senza Godot)<br/>StealthRules, CharacterRules"]
     end
     subgraph Infrastruttura
         Core["Core (autoload)<br/>GameState, SceneRouter, InputActions"]
@@ -74,6 +76,10 @@ flowchart TB
     Player --> Core & Character & Stealth & World
     AI --> Player & Stealth
     Core --> Character
+    Character --> Rules
+    Stealth --> Rules
+    AI --> Rules
+    Dev["Dev (solo debug)<br/>DebugOverlay, ScenarioRunner,<br/>Scenarios, ReachabilityMap"] -.-> World & Player & AI & UI & Stealth
 ```
 
 ### Dipendenze effettive tra namespace
@@ -90,8 +96,10 @@ Ricavate dalle direttive `using` e dai tipi usati nel codice:
 | `World` | `Core`, `Player`, `AI`, `Stealth`, `UI` | `Player` |
 | `UI` | `Core`, `Character`, `Player`, `AI`, `World` | `Intro`, `World` |
 | `Intro` | `Core`, `UI` | — |
+| `Rules` | — (solo .NET, nessun tipo Godot) | `Character`, `Stealth`, `AI`, test unitari |
+| `Dev` | tutti | — (si attiva solo nelle build di debug) |
 
-**Punti di forza.** `Stealth` e `Character` non dipendono da nulla del gioco: sono il nucleo riusabile e testabile. `Core` è piccolo e stabile.
+**Punti di forza.** `Stealth` e `Character` non dipendono da nulla del gioco. Le formule del gameplay stanno in `Rules`, che non dipende nemmeno da Godot: i test unitari ne compilano i sorgenti direttamente, senza caricare il motore. `Core` è piccolo e stabile; `PhysicsLayers` (in `Core`) è anch'esso puro.
 
 **Punti deboli** (dettagli e proposte nel [Backlog](../BACKLOG.md)):
 
@@ -107,7 +115,11 @@ Ricavate dalle direttive `using` e dai tipi usati nel codice:
 thepalestitch/                         radice del repository git
 ├── README.md                          avvio rapido
 ├── CHANGELOG.md                       storia delle versioni
+├── global.json                        impone il .NET SDK 10
+├── tools/verify.ps1, verify.sh        verifica completa (build, test, scenari)
+├── tests/ThePaleStitch.Tests/         test unitari del codice puro
 ├── docs/
+│   ├── PLAN.md                        piano dei task e registro delle decisioni
 │   ├── BACKLOG.md                     fix, change request, nice to have
 │   ├── design/01-prologo-video-schermate.md
 │   └── tech/
@@ -118,6 +130,7 @@ thepalestitch/                         radice del repository git
     ├── The Pale Stitch.csproj / .sln  progetto C#
     ├── thepalestitch_prologue.tscn    livello del prologo
     ├── icon.svg
+    ├── dev/ScenarioRunner.tscn        banco di scenari (solo sviluppo)
     ├── scenes/                        scene (.tscn), una cartella per area
     │   ├── ai/Watchman.tscn
     │   ├── boot/Boot.tscn
@@ -128,6 +141,8 @@ thepalestitch/                         radice del repository git
     │   └── ui/Hud.tscn
     ├── scripts/                       codice C#, una cartella = un namespace
     │   ├── ai/  character/  core/  intro/  player/  stealth/  ui/  world/
+    │   ├── rules/                     formule pure, senza Godot, coperte da test
+    │   └── dev/                       pannello F3, banco di scenari, mappa di raggiungibilità
     ├── localization/strings.csv       tutti i testi (+ .translation generati)
     ├── ui/
     │   ├── fonts/                     IM Fell English + licenza OFL
@@ -157,12 +172,13 @@ thepalestitch/                         radice del repository git
 
 ### 5.1 Avvio
 
-All'avvio Godot legge `project.godot` e, prima di qualsiasi scena, crea i due **autoload** sotto la radice dell'albero (`/root`). Poi carica la scena principale `scenes/boot/Boot.tscn`.
+All'avvio Godot legge `project.godot` e, prima di qualsiasi scena, crea i tre **autoload** sotto la radice dell'albero (`/root`). Poi carica la scena principale `scenes/boot/Boot.tscn`.
 
 ```
 /root
 ├── GameState      (Node, autoload)        stato persistente tra le scene
 ├── SceneRouter    (CanvasLayer, autoload) dissolvenze e cambi scena
+├── DebugOverlay   (Node, autoload)        pannello F3; si elimina da solo nelle build di release
 └── Boot           (scena corrente; viene sostituita a ogni cambio)
 ```
 
@@ -225,8 +241,10 @@ Per ogni componente: responsabilità, interfaccia verso gli altri, dati che poss
 | Classe | Tipo Godot | Responsabilità | Interfaccia pubblica |
 |---|---|---|---|
 | `GameState` | `Node`, autoload | Personaggio scelto, lingua, "video già visto". Legge e scrive `user://settings.cfg` | `Instance`, `Profile`, `IntroSeen`, `Locale`, `CommitProfile()`, `SetLocale()`, `MarkIntroSeen()` |
-| `SceneRouter` | `CanvasLayer` (layer 100), autoload | Cambi scena con dissolvenza; costanti dei percorsi | `Instance`, `GoTo(path, fadeSeconds)` |
+| `SceneRouter` | `CanvasLayer` (layer 100), autoload | Cambi scena con dissolvenza; una richiesta in arrivo durante una transizione viene eseguita dopo; costanti dei percorsi | `Instance`, `GoTo(path, fadeSeconds)`, `Busy` |
 | `InputActions` | classe statica | Nomi delle azioni della Input Map come `StringName` | campi statici `MoveLeft`, `Interact`, … |
+| `PhysicsLayers` | classe statica pura | Layer fisici e maschere come costanti nominate (CR-008) | `World`, `Player`, `Guards`, `PlayerMask`, `OccluderMask`, … |
+| `Mouse` | classe statica | Cambia la modalità del mouse solo se c'è un display (niente errori senza finestra) | `SetMode()` |
 
 Persistenza (`user://settings.cfg`, formato INI di Godot):
 
@@ -266,9 +284,9 @@ classDiagram
         +float Visibility
         +float Noise
         +int BeltSlots
-        +VariantDef[] Variants
+        +DyeDef[] Dyes
     }
-    class VariantDef {
+    class DyeDef {
         <<record>>
         +string Id
         +Color Cloth
@@ -284,17 +302,17 @@ classDiagram
         +CostumeDef[] Costumes
         +VisageDef[] Visages
         +string[] Aliases
-        +Trade(id) Costume(id) Visage(id) Variant(costume,id)
+        +Trade(id) Costume(id) Visage(id) Dye(costume,id)
     }
     class CharacterProfile {
-        +string TradeId, CostumeId, VariantId, VisageId, Alias
+        +string TradeId, CostumeId, DyeId, VisageId, Alias
         +NoiseMultiplier float
         +VisibilityMultiplier float
         +LockpickSeconds float
         +Default()$ CharacterProfile
         +Clone() CharacterProfile
     }
-    CostumeDef "1" *-- "3" VariantDef
+    CostumeDef "1" *-- "3" DyeDef
     CharacterCatalog o-- TradeDef
     CharacterCatalog o-- CostumeDef
     CharacterCatalog o-- VisageDef
@@ -306,14 +324,15 @@ Scelte di progetto:
 
 - Il profilo conserva solo **identificativi** (stringhe), non riferimenti agli oggetti: è già pronto per essere salvato su file.
 - Le chiavi di traduzione sono **derivate dall'Id** (`TRADE_CUTPURSE_NAME`). Aggiungere un mestiere significa aggiungere una riga nel catalogo e quattro righe nel CSV.
-- Tutto il bilanciamento che dipende dal personaggio sta in tre proprietà di `CharacterProfile`. → Guida §17.
+- Tutto il bilanciamento che dipende dal personaggio passa da tre proprietà di `CharacterProfile`, che delegano a `Rules/CharacterRules`. → Guida §17.
+- La tinta di un costume si chiama `DyeDef` (prima `VariantDef`, rinominata con FIX-012 perché `Variant` è anche un tipo del motore).
 
 ### 6.3 Stealth — sistemi di furtività
 
 | Classe | Tipo | Responsabilità |
 |---|---|---|
-| `LightSensor` | `Node3D`, figlio del giocatore | Misura l'esposizione alla luce da 0 a 1 con raycast verso ogni luce del gruppo `stealth_light` |
-| `NoiseBus` | classe statica | Canale globale dei rumori: `Emit()` pubblica un `NoiseEvent`, `AudibleRadius()` calcola l'attenuazione dei muri, `AmbientMask` riduce tutti i rumori (campana) |
+| `LightSensor` | `Node3D`, figlio del giocatore | Misura l'esposizione alla luce da 0 a 1 con raycast verso ogni luce del gruppo `stealth_light`; a richiesta conserva i raggi testati per il pannello F3 |
+| `NoiseBus` | classe statica | Canale globale dei rumori: `Emit()` pubblica un `NoiseEvent` e restituisce il raggio emesso, `Masked()` applica il mascheramento, `AudibleRadius()` calcola l'attenuazione dei muri, `AmbientMask` riduce tutti i rumori (campana). Le formule sono in `Rules/StealthRules` |
 | `NoiseEvent` | `record struct` | Origine, raggio, tipo (`NoiseKind`), sorgente |
 | `NoiseRingSpawner` | `Node3D` | Si iscrive a `NoiseBus.Emitted` e disegna un anello a terra per ogni rumore |
 
@@ -327,7 +346,7 @@ Scelte di progetto:
 | `CameraRig` | `Node3D` | Camera isometrica ortografica che segue il giocatore e ruota a scatti di 90°; passaggio in prima persona |
 | `Mannequin` | `Node3D` | Corpo segnaposto che si colora secondo la tinta scelta |
 
-Stato esposto da `PlayerController` e letto da altri: `Visibility`, `NoiseLevel`, `CurrentStance`, `CurrentSurface`, `Focus`, `InputLocked`, `Profile`, `Head`, `FirstPersonCamera`, `Visual`. `InputLocked` è scritto da `CameraRig` e `PrologueLevel` per congelare il personaggio. → Guida §18–19.
+Stato esposto da `PlayerController` e letto da altri: `Visibility`, `NoiseLevel`, `LastNoiseRadius`, `CurrentStance` (furtivo, al passo, di corsa, immobile), `SneakToggled`, `CurrentSurface`, `Focus`, `InputLocked`, `Profile`, `Sensor`, `Head`, `FirstPersonCamera`, `Visual`. `InputLocked` è scritto da `CameraRig` e `PrologueLevel` per congelare il personaggio. → Guida §18–19.
 
 ### 6.5 AI — le guardie
 
@@ -371,7 +390,7 @@ Gli alberi seguenti mostrano solo i nodi rilevanti per il codice. Tra parentesi 
 ### 7.1 `Player.tscn`
 
 ```
-Player (CharacterBody3D, PlayerController)   layer 2 "player", mask 1 "world"
+Player (CharacterBody3D, PlayerController)   layer 2 "player", mask 5 "world" + "guards"
 ├── Collision (CollisionShape3D)             capsula r 0,35 × h 1,7
 ├── Visual (istanza di Mannequin.tscn)       ruota verso la direzione di marcia
 ├── Presence (OmniLight3D)                   luce di leggibilità, NON conta per la furtività
@@ -385,7 +404,7 @@ Player (CharacterBody3D, PlayerController)   layer 2 "player", mask 1 "world"
 ### 7.2 `Watchman.tscn`
 
 ```
-Watchman (CharacterBody3D, Watchman)         layer 3 "guards", mask 1 "world"
+Watchman (CharacterBody3D, Watchman)         layer 3 "guards", mask 3 "world" + "player"
 ├── Collision, Body, Helm, Nasal             corpo segnaposto
 ├── Lantern (OmniLight3D, TorchFlicker)      gruppo "stealth_light": illumina il giocatore
 ├── Eyes (Marker3D, y = 1,62)                origine della vista e dell'udito
@@ -451,16 +470,16 @@ Ogni corpo fisico dichiara **su quale layer sta** (`collision_layer`) e **quali 
 
 | Oggetto | Layer | Mask | Effetto |
 |---|---|---|---|
-| Player | 2 | 1 | Si scontra solo con il mondo |
-| Watchman | 4 | 1 | Si scontra solo con il mondo |
+| Player | 2 | 5 (`PlayerMask`) | Si scontra con il mondo e con le guardie |
+| Watchman | 4 | 3 (`GuardMask`) | Si scontra con il mondo e con il giocatore |
 | InteractProbe (Area3D del giocatore) | 0 | 8 | Rileva gli oggetti interattivi |
 | SurfaceZone | 16 | 2 | Rileva il giocatore |
 | MerchantDoor | 8 | 0 | Viene rilevata, non rileva nulla |
-| Raycast di luce, vista e suono | — | 1 (`NoiseBus.WorldMask`) | Solo i muri bloccano luce, vista e suono |
+| Raycast di luce, vista e suono | — | 1 (`OccluderMask`) | Solo i muri bloccano luce, vista e suono |
 
-**Difetto noto:** né il giocatore né la guardia hanno l'altro nella propria maschera, quindi **si attraversano**. → FIX-001.
+Fino alla versione 0.0.1 né il giocatore né la guardia avevano l'altro nella propria maschera, e **si attraversavano** (FIX-001, corretto).
 
-I valori numerici dei layer sono scritti direttamente nelle scene e in `NoiseBus.WorldMask`: non c'è una sola fonte di verità. → CR-008.
+**Unica fonte di verità** (CR-008): nel codice i layer si usano solo tramite le costanti di `Core/PhysicsLayers`. Le scene li contengono ancora come numeri, perché è il formato di Godot, ma i test unitari (`ProjectConfigTests`) controllano che i nomi in `project.godot` e i valori scritti nelle scene principali coincidano con le costanti.
 
 ---
 
@@ -552,14 +571,16 @@ sequenceDiagram
 |---|---|---|---|
 | application | `run/main_scene` | `res://scenes/boot/Boot.tscn` | Prima scena |
 | application | `config/version` | `0.0.1` | Mostrata nel menu |
-| autoload | `GameState`, `SceneRouter` | script C# con `*` | `*` = crea il nodo e lo rende globale |
+| autoload | `GameState`, `SceneRouter`, `DebugOverlay` | script C# con `*` | `*` = crea il nodo e lo rende globale |
 | display | viewport 1920×1080, finestra 1600×900 | | Risoluzione di progetto e finestra di sviluppo |
 | display | `stretch/mode = canvas_items` | | L'interfaccia si scala con la finestra |
 | gui | `theme/custom` | `pale_theme.tres` | Stile di default di tutti i controlli |
-| input | 12 azioni | | Vedi Technical Guide §8.5 |
+| input | 13 azioni (con `debug_overlay`, F3) | | Vedi Technical Guide §8.5 |
 | internationalization | `locale/translations` | due file `.translation` | Lingua di riserva implicita: inglese |
 | layer_names | 5 layer 3D | | Vedi §8 |
 | physics | `3d/physics_engine` | Jolt Physics | |
+| physics | `common/physics_interpolation` | `true` | Movimento fluido sui monitor oltre 60 Hz (FIX-002, Guida §5.5) |
+| physics | `common/physics_jitter_fix` | `0.0` | Va spento quando si usa l'interpolazione |
 | rendering | driver Windows | d3d12 | |
 
 L'editor riscrive `project.godot` quando salva: cambiano formattazione e ordine, e i valori uguali al default possono sparire (è successo con `locale/fallback="en"`). È normale: modificare questo file preferibilmente dall'editor (Progetto → Impostazioni progetto).
@@ -578,6 +599,8 @@ flowchart LR
 - L'SDK `Godot.NET.Sdk/4.7.2` viene scaricato da NuGet alla prima compilazione, insieme alle librerie `GodotSharp`.
 - I **generatori di codice** di Godot scrivono, per ogni classe `partial`, il codice che collega proprietà `[Export]`, segnali e metodi al motore.
 - Il risultato va in `.godot/mono/temp/`, non in `bin/` e `obj/` come in un progetto .NET normale.
+- `global.json` alla radice del repository richiede l'SDK 10 (10.0.100 o successivo nella stessa versione) per il gioco e per i test.
+- I test (`tests/ThePaleStitch.Tests`) sono un progetto .NET separato, fuori dalla cartella del progetto Godot: Godot compila tutto il C# che trova sotto `thepalestitch_project/`, e i test non devono finire nel gioco.
 - Godot compila da solo quando si avvia il gioco (F5) e quando si preme il martello. Se la compilazione fallisce, le scene si aprono ma gli script non vengono collegati: è quello che succedeva prima di installare l'SDK 10.
 
 ### 10.3 Pipeline della localizzazione
@@ -609,6 +632,11 @@ Registro sintetico delle decisioni prese finora (formato ADR: contesto, decision
 | ADR-007 | Catalogo del personaggio come codice C# | Semplice e tipizzato in fase di bozza | Un game designer non può modificarlo dall'editor (CR-009) |
 | ADR-008 | Navmesh calcolato all'avvio del livello | Muri spostati nell'editor vengono rispettati senza passaggi manuali | Costo all'avvio che cresce con il livello (CR-016) |
 | ADR-009 | Geometria graybox con `StaticBody3D` + `BoxMesh` | Collisioni affidabili per raycast e navmesh | Da sostituire con modelli veri |
+| ADR-010 | Formule del gameplay in classi pure (`Rules`), senza tipi di Godot | Testabili senza avviare il motore; una sola fonte per i numeri che la documentazione cita | Le classi di gioco delegano; serve disciplina per non reintrodurre formule sparse |
+| ADR-011 | Test unitari con un esecutore minimo in stile xUnit, senza pacchetti | L'ambiente di sviluppo di Claude non raggiunge NuGet | Si passa a xUnit vero con la CI (CR-011) cancellando `Framework/` |
+| ADR-012 | Banco di scenari in C# dentro il progetto Godot, eseguito senza finestra a `--fixed-fps 144` | Prova il comportamento reale delle scene, in tempo simulato e in modo deterministico | Il codice `Dev` è compilato nel gioco: si attiva solo in debug, va escluso dalle esportazioni |
+| ADR-013 | Interpolazione fisica attiva; i nodi mossi a ogni frame la disattivano | Movimento fluido a qualsiasi frequenza dello schermo | Ogni nuovo nodo mosso in `_Process` deve impostare `PhysicsInterpolationMode = Off` |
+| ADR-014 | Timer legati alla scena (`Timer` figlio) invece di `SceneTree.CreateTimer` per le azioni di un livello | Un timer dell'albero sopravvive al livello e può agire su una scena sbagliata (FIX-014) | Usare il metodo `After` o un `Timer` figlio |
 
 ---
 
@@ -616,10 +644,10 @@ Registro sintetico delle decisioni prese finora (formato ADR: contesto, decision
 
 | Attributo | Stato | Riferimenti |
 |---|---|---|
-| Correttezza | 13 difetti noti, uno ad alto impatto (collisioni giocatore/guardia) | FIX-001…FIX-013 |
-| Testabilità | Nessun test automatico. `Character` e `NoiseBus.Emit` sono testabili subito; il resto richiede test di scena | CR-011 |
-| Manutenibilità | Codice compatto (circa 2.600 righe), documentato; numeri magici per layer e soglie; ciclo Player↔World | CR-008, CR-010 |
+| Correttezza | Iterazione 1: 12 difetti corretti, compreso FIX-014 trovato dal banco di scenari; restano FIX-007 e FIX-013 (iterazione 2) | [Backlog](../BACKLOG.md) |
+| Testabilità | 44 test unitari sul codice puro e sulla coerenza di configurazione, testi e scene; 37 controlli in 11 scenari di gioco; un comando di verifica unico | CR-011, Guida §29 |
+| Manutenibilità | Codice documentato; formule e layer centralizzati; resta il ciclo Player↔World | CR-010 |
 | Prestazioni | Nessun problema con un livello piccolo. Punti da sorvegliare: raycast di luce per ogni luce, percorso della guardia ricalcolato a ogni tick, navmesh all'avvio | FIX-013, CR-016, CR-017 |
-| Fluidità visiva | Interpolazione fisica disattivata: possibili scatti su monitor sopra 60 Hz | FIX-002 |
+| Fluidità visiva | Interpolazione fisica attiva, misurata dallo scenario `motion_is_smooth_at_144hz` | FIX-002 |
 | Portabilità | Windows verificato; Linux verificato in fase di sviluppo; Web non supportato da Godot .NET | — |
 | Accessibilità | Nessun supporto gamepad, nessuna rimappatura tasti, nessuna opzione di testo | CR-013, NTH-001, NTH-002 |

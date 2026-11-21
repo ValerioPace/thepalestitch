@@ -11,12 +11,21 @@ Categorie: **Aggiunto** per nuove funzioni, **Modificato** per cambiamenti a fun
 ## [Unreleased]
 
 ### Aggiunto
+- **Verifica automatica** (CR-011 parte 1, CR-012): `tools/verify.ps1` e `tools/verify.sh` eseguono compilazione con avvisi trattati come errori, test unitari, importazione e scenari di gioco; esito VERIFY GREEN o RED con rapporto in `verify-report/`. `global.json` impone il .NET SDK 10.
+- **Test unitari** (`tests/ThePaleStitch.Tests`, 44 casi): formule di furtività e personaggio, coerenza di layer, azioni di input, scene, interpolazione e testi localizzati.
+- **Banco di scenari** (`dev/ScenarioRunner.tscn`, 11 scenari, 37 controlli): il gioco gira senza finestra a 144 fps simulati e verifica collisioni, udito della guardia, suggerimenti, furtivo, uscita al menu, cambi scena, fluidità e perimetro del prologo con la **mappa di raggiungibilità**.
+- **Pannello di debug della furtività** (CR-020), tasto F3 nelle build di debug: coni e sospetto delle guardie, linea di vista, raggi di luce, valori numerici.
+- Classi pure `Rules/StealthRules` e `Rules/CharacterRules` con le formule del gameplay; `Core/PhysicsLayers` con i layer fisici (CR-008).
+- Andatura *Immobile* durante le azioni (testo "Immobile" nell'HUD).
 - Documento di architettura del software (`docs/tech/ARCHITECTURE.md`): moduli, dipendenze, flussi a runtime, layer fisici, configurazione, decisioni architetturali.
 - Technical Guide (`docs/tech/TECHNICAL_GUIDE.md`): fondamenti di sviluppo con Godot 4 .NET per chi non ha esperienza di videogiochi, spiegazione passo passo di tutti i sistemi del progetto, ricette operative, diagnosi, flusso di lavoro con git.
 - Backlog (`docs/BACKLOG.md`) con 13 difetti, 20 change request e 9 integrazioni nice to have emersi dall'analisi della versione 0.0.1.
 - Questo changelog.
 
 ### Modificato
+- **Furtivo a interruttore** (CR-022): C o Ctrl attivano il furtivo, una seconda pressione lo disattiva. Shift tenuto premuto corre; al rilascio si torna all'andatura scelta (D-04).
+- I suggerimenti del tutorial nominano i tasti tramite segnaposto riempiti con i tasti reali della Input Map (FIX-009); i testi nominano C prima di Ctrl.
+- Rinominati `VariantDef`, `Variant()`, `VariantId` in `DyeDef`, `Dye()`, `DyeId` (FIX-012).
 - **Prologo, perimetro del livello** (CR-021): chiusi i quattro varchi che permettevano di aggirare la ronda passando dietro le case o ai lati del cortile. Nuovi corpi `WestOutbuilding`, `AlleyEnd`, `LeanTo`; muri del cortile `YardWallWest` e `YardWallEast` alti 3,5 m. L'area raggiungibile passa da 2.713 a 382 m²; il vicolo resta come nascondiglio cieco.
 - Documento di design: premessa narrativa confermata; nuovi principi di level design (§5.1).
 - Piano dei task agentici (`docs/PLAN.md`) con iterazioni e registro delle decisioni.
@@ -24,6 +33,23 @@ Categorie: **Aggiunto** per nuove funzioni, **Modificato** per cambiamenti a fun
 - Documento di design: principio della furtività e scarti misurati rispetto al comportamento attuale.
 - Backlog: CR-021 chiusa, aggiunta NTH-010 (saltare il prologo), CR-003 non più in attesa della premessa.
 - README: prerequisiti (.NET SDK 10) e indice dei documenti.
+### Corretto
+- Giocatore e guardia non si attraversano più (FIX-001).
+- Movimento fluido sui monitor oltre 60 Hz grazie all'interpolazione fisica (FIX-002).
+- Un rumore non abbassa più il sospetto della guardia; la distanza si misura dalle orecchie (FIX-003).
+- La campana non cancella più le istruzioni della serratura: notifiche e istruzioni sono due canali distinti (FIX-004).
+- Durante la serratura la visibilità è neutra invece che ridotta come in furtivo (FIX-005, D-03).
+- Formula del mascheramento sonoro in un solo punto; la barra del rumore mostra il raggio realmente emesso (FIX-006).
+- I cambi scena richiesti durante una dissolvenza non vanno persi; gli errori vengono registrati (FIX-008).
+- Animazioni dei suggerimenti non più sovrapposte (FIX-010).
+- Dopo la cattura, uscire al menu prima della ripartenza non ricarica più il livello sopra il menu (FIX-014, trovato dal banco di scenari).
+
+### Rimosso
+- Codice inutilizzato: `GameState.HasProfile`, `SceneRouter.Boot` (FIX-011).
+
+### Documentazione
+- Technical Guide: interpolazione fisica (§5.5), andature e furtivo a interruttore, canali dei suggerimenti, nuovo capitolo §29 sulla verifica automatica. Architettura 1.1: namespace `Rules` e `Dev`, layer corretti, ADR-010…014.
+
 - `project.godot` riformattato dall'editor di Godot all'apertura del progetto: stessa configurazione, formattazione diversa delle azioni di input; la riga `locale/fallback="en"` è stata rimossa perché uguale al valore predefinito.
 
 ## [0.0.1] — 2026-11-14

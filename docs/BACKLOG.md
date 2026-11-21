@@ -7,7 +7,7 @@
 | Data | 21 novembre 2026 |
 | Documenti collegati | [Architettura](tech/ARCHITECTURE.md) · [Technical Guide](tech/TECHNICAL_GUIDE.md) · [Changelog](../CHANGELOG.md) · [Design](design/01-prologo-video-schermate.md) |
 
-Elenco unico di tutto il lavoro da fare sul software, nato dall'analisi della bozza 0.0.1. Le voci chiuse riportano data e verifica; le altre si riferiscono al codice del commit `b5b2eec`.
+Elenco unico di tutto il lavoro da fare sul software, nato dall'analisi della bozza 0.0.1. Le voci chiuse o in verifica riportano l'esito e come è verificato; le altre si riferiscono al codice della versione 0.0.1.
 
 ## Legenda
 
@@ -16,7 +16,7 @@ Elenco unico di tutto il lavoro da fare sul software, nato dall'analisi della bo
 | **Tipo** | **FIX** difetto del codice esistente · **CR** change request: evoluzione necessaria per il gioco o per la qualità del software · **NTH** nice to have: integrazione desiderabile, non indispensabile |
 | **Priorità** | **P1** blocca o falsa il gameplay, da fare subito · **P2** prossima iterazione · **P3** pianificabile · **P4** quando capita |
 | **Stima** | **XS** < 1 h · **S** ≤ ½ giornata · **M** 1–3 giornate · **L** 1–2 settimane · **XL** oltre |
-| **Stato** | Aperta · Decisione richiesta · In corso · Chiusa |
+| **Stato** | Aperta · Decisione richiesta · In corso · **In verifica** (implementata e coperta dalla verifica automatica, in attesa del playtest del committente) · Chiusa |
 
 Le stime sono riferite al lavoro di sviluppo con il supporto di Claude, escluse produzione di asset artistici e audio.
 
@@ -24,19 +24,20 @@ Le stime sono riferite al lavoro di sviluppo con il supporto di Claude, escluse 
 
 | Id | Titolo | Tipo | Priorità | Stima | Stato |
 |---|---|---|---|---|---|
-| FIX-001 | Giocatore e guardia si attraversano | FIX | P1 | XS | Aperta |
-| FIX-002 | Scatti visivi su monitor oltre 60 Hz | FIX | P2 | S | Aperta |
-| FIX-003 | Un rumore può abbassare il sospetto della guardia | FIX | P2 | XS | Aperta |
-| FIX-004 | La campana cancella le istruzioni della serratura | FIX | P2 | S | Aperta |
-| FIX-005 | Bloccare l'input rende il personaggio meno visibile | FIX | P3 | S | Aperta |
-| FIX-006 | Formula del mascheramento sonoro duplicata | FIX | P3 | XS | Aperta |
+| FIX-001 | Giocatore e guardia si attraversano | FIX | P1 | XS | In verifica |
+| FIX-002 | Scatti visivi su monitor oltre 60 Hz | FIX | P2 | S | In verifica |
+| FIX-003 | Un rumore può abbassare il sospetto della guardia | FIX | P2 | XS | In verifica |
+| FIX-004 | La campana cancella le istruzioni della serratura | FIX | P2 | S | In verifica |
+| FIX-005 | Bloccare l'input rende il personaggio meno visibile | FIX | P3 | S | In verifica |
+| FIX-006 | Formula del mascheramento sonoro duplicata | FIX | P3 | XS | In verifica |
 | FIX-007 | Rumori e raycast eseguiti fuori dal passo fisico | FIX | P3 | S | Aperta |
-| FIX-008 | Cambi scena persi ed eccezioni silenziose | FIX | P3 | S | Aperta |
-| FIX-009 | Nomi dei tasti scritti nei testi del tutorial | FIX | P3 | S | Aperta |
-| FIX-010 | Animazioni dei suggerimenti sovrapposte | FIX | P4 | XS | Aperta |
-| FIX-011 | Codice inutilizzato | FIX | P4 | XS | Aperta |
-| FIX-012 | `CharacterProfile.Variant` oscura il tipo `Godot.Variant` | FIX | P4 | XS | Aperta |
+| FIX-008 | Cambi scena persi ed eccezioni silenziose | FIX | P3 | S | In verifica |
+| FIX-009 | Nomi dei tasti scritti nei testi del tutorial | FIX | P3 | S | In verifica |
+| FIX-010 | Animazioni dei suggerimenti sovrapposte | FIX | P4 | XS | In verifica |
+| FIX-011 | Codice inutilizzato | FIX | P4 | XS | In verifica |
+| FIX-012 | `CharacterProfile.Variant` oscura il tipo `Godot.Variant` | FIX | P4 | XS | In verifica |
 | FIX-013 | Percorso della guardia ricalcolato a ogni passo fisico | FIX | P4 | S | Aperta |
+| FIX-014 | Il livello si ricarica sopra il menu dopo la cattura | FIX | P2 | XS | In verifica |
 | CR-001 | Edifici che coprono il personaggio | CR | P1 | M | Decisione richiesta |
 | CR-002 | Suono che gira gli angoli e passa dalle porte | CR | P2 | L | Aperta |
 | CR-003 | Interno della casa del mercante (prologo D–G) | CR | P1 | L | Aperta |
@@ -44,11 +45,11 @@ Le stime sono riferite al lavoro di sviluppo con il supporto di Claude, escluse 
 | CR-005 | Uccisione silenziosa e trasporto dei corpi | CR | P2 | L | Aperta |
 | CR-006 | Salvataggio e "Riprendi" | CR | P2 | M | Aperta |
 | CR-007 | Sistema audio | CR | P2 | L | Aperta |
-| CR-008 | Costanti uniche per i layer fisici | CR | P3 | S | Aperta |
+| CR-008 | Costanti uniche per i layer fisici | CR | P3 | S | In verifica |
 | CR-009 | Catalogo del personaggio come risorse dell'editor, con validazione | CR | P3 | M | Aperta |
 | CR-010 | Disaccoppiare HUD, giocatore e mondo | CR | P3 | M | Aperta |
-| CR-011 | Test automatici e integrazione continua | CR | P2 | M | Aperta |
-| CR-012 | Fissare la versione dell'SDK | CR | P3 | XS | Aperta |
+| CR-011 | Test automatici e integrazione continua | CR | P2 | M | In corso (parte 1 in verifica) |
+| CR-012 | Fissare la versione dell'SDK | CR | P3 | XS | In verifica |
 | CR-013 | Gamepad e navigazione dei menu da tastiera | CR | P3 | M | Aperta |
 | CR-014 | Livelli guidati da dati: trigger, obiettivi, eventi | CR | P2 | L | Aperta |
 | CR-015 | IA delle guardie, seconda versione (epica) | CR | P2 | L | Aperta |
@@ -56,9 +57,9 @@ Le stime sono riferite al lavoro di sviluppo con il supporto di Claude, escluse 
 | CR-017 | Registro delle luci per il sensore | CR | P4 | S | Aperta |
 | CR-018 | Doti dei mestieri e abilità Lama, Veleno, Nerbo | CR | P2 | L | Aperta |
 | CR-019 | Modelli, animazioni e ritratti definitivi | CR | P2 | XL | Aperta |
-| CR-020 | Pannello di debug della furtività | CR | P2 | S | Aperta |
+| CR-020 | Pannello di debug della furtività | CR | P2 | S | In verifica |
 | CR-021 | Chiudere i percorsi che aggirano la ronda del prologo | CR | P1 | S | Chiusa |
-| CR-022 | Furtivo a interruttore | CR | P1 | XS | Aperta |
+| CR-022 | Furtivo a interruttore | CR | P1 | XS | In verifica |
 | CR-023 | Percezione per parti del corpo | CR | P1 | M | Aperta |
 | CR-024 | Visione periferica e sguardi della guardia | CR | P1 | M | Decisione richiesta |
 | CR-025 | Allerta che cresce con il tempo | CR | P1 | M | Decisione richiesta |
@@ -100,6 +101,8 @@ La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna,
 - La guardia in ronda non attraversa il giocatore fermo.
 - La guardia continua a vedere il giocatore "a contatto" (regola dei 1,3 m).
 
+**Esito** (iterazione 1, T-1.1, novembre 2026; stato *In verifica*). Maschere 5 e 3, nomi in `PhysicsLayers.PlayerMask`/`GuardMask`. La guardia si ferma contro il giocatore, non lo spinge. Verifica: test `ProjectConfigTests`, scenario `player_cannot_cross_guard`.
+
 ### FIX-002 · Scatti visivi su monitor oltre 60 Hz
 
 | Tipo | Priorità | Stima | Componenti |
@@ -111,6 +114,8 @@ La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna,
 **Proposta.** Attivare l'interpolazione fisica (`physics/common/physics_interpolation = true`): il motore disegna i corpi in una posizione interpolata tra due passi fisici. Chiamare `ResetPhysicsInterpolation()` quando un nodo viene teletrasportato (ricomincio del livello). Verificare che la camera segua la posizione interpolata.
 
 **Criteri di accettazione.** A 144 Hz, camminando in linea retta, nessuno scatto visibile del personaggio rispetto allo sfondo.
+
+**Esito** (iterazione 1, T-1.5, novembre 2026; stato *In verifica*). Interpolazione fisica attiva, `physics_jitter_fix` a 0; camera e nodi mossi a ogni frame esclusi; la camera segue la posizione interpolata. Verifica: scenario `motion_is_smooth_at_144hz` (variazione 0,00 contro 1,18 senza interpolazione), test di configurazione.
 
 ### FIX-003 · Un rumore può abbassare il sospetto della guardia
 
@@ -124,6 +129,8 @@ La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna,
 
 **Criteri di accettazione.** Test unitario: con sospetto iniziale 0,95 un rumore vicino lascia il sospetto ≥ 0,95.
 
+**Esito** (iterazione 1, T-1.1, novembre 2026; stato *In verifica*). Formula in `StealthRules.SuspicionAfterHearing`, distanza misurata dalle orecchie. Verifica: test unitari.
+
 ### FIX-004 · La campana cancella le istruzioni della serratura
 
 | Tipo | Priorità | Stima | Componenti |
@@ -135,6 +142,8 @@ La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna,
 **Proposta.** Due canali distinti nell'HUD: suggerimenti di **contesto** (permanenti, legati a un'azione in corso) e **notifiche** temporanee. In alternativa, una pila di suggerimenti con priorità che ripristina il precedente alla scadenza.
 
 **Criteri di accettazione.** Scassinando durante un rintocco, alla fine della notifica della campana le istruzioni della serratura sono di nuovo visibili.
+
+**Esito** (iterazione 1, T-1.1, novembre 2026; stato *In verifica*). Due canali nell'HUD: `SetContextHint` e `Notify`. Verifica: scenario `lock_hint_survives_bell`.
 
 ### FIX-005 · Bloccare l'input rende il personaggio meno visibile
 
@@ -148,6 +157,8 @@ La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna,
 
 **Criteri di accettazione.** Il fattore di visibilità durante un'azione in prima persona è quello deciso e configurabile dall'Inspector.
 
+**Esito** (iterazione 1, T-1.2, novembre 2026; stato *In verifica*). Risolta con CR-022: lo stato *Immobile* ha visibilità ×1,0 (D-03). Verifica: scenario `sneak_is_a_toggle`.
+
 ### FIX-006 · Formula del mascheramento sonoro duplicata
 
 | Tipo | Priorità | Stima | Componenti |
@@ -159,6 +170,8 @@ La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna,
 **Proposta.** Un metodo pubblico `NoiseBus.Masked(float radius)` usato da entrambi; `Emit` restituisce il raggio effettivamente emesso.
 
 **Criteri di accettazione.** Il valore 0,6 compare in un solo punto del codice.
+
+**Esito** (iterazione 1, T-1.1, novembre 2026; stato *In verifica*). `NoiseBus.Masked` è l'unico punto; `Emit` restituisce il raggio emesso e la barra del rumore lo usa. Verifica: test unitari di `StealthRules`.
 
 ### FIX-007 · Rumori e raycast eseguiti fuori dal passo fisico
 
@@ -184,6 +197,8 @@ La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna,
 
 **Criteri di accettazione.** Due chiamate ravvicinate portano alla seconda destinazione; un percorso inesistente produce un errore nel pannello Output e il gioco resta utilizzabile.
 
+**Esito** (iterazione 1, T-1.5, novembre 2026; stato *In verifica*). Coda dell'ultima richiesta, `try/catch/finally`. Verifica: scenario `scene_requests_are_not_lost`.
+
 ### FIX-009 · Nomi dei tasti scritti nei testi del tutorial
 
 | Tipo | Priorità | Stima | Componenti |
@@ -196,6 +211,8 @@ La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna,
 
 **Criteri di accettazione.** Cambiando il tasto di `interact` nella Input Map, il suggerimento della serratura mostra il nuovo tasto.
 
+**Esito** (iterazione 1, T-1.2, novembre 2026; stato *In verifica*). Segnaposto `{azione}` e `{move}` riempiti da `Hud.FillKeys`. Verifica: test `LocalizationTests` (nessun tasto in chiaro, segnaposto validi), scenario `hint_keys_are_bound_keys`.
+
 ### FIX-010 · Animazioni dei suggerimenti sovrapposte
 
 | Tipo | Priorità | Stima | Componenti |
@@ -205,6 +222,8 @@ La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna,
 **Problema.** Ogni comparsa o scomparsa di un suggerimento crea un nuovo tween sulla stessa proprietà senza fermare il precedente. Due chiamate ravvicinate producono un'opacità contesa.
 
 **Proposta.** Conservare il tween in un campo e chiamare `Kill()` prima di crearne uno nuovo.
+
+**Esito** (iterazione 1, T-1.1, novembre 2026; stato *In verifica*). Un solo tween, fermato con `Kill()`.
 
 ### FIX-011 · Codice inutilizzato
 
@@ -216,6 +235,8 @@ La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna,
 
 **Proposta.** Rimuoverli, oppure usare `HasProfile` per avvisare quando il prologo viene avviato senza personaggio (F6 dall'editor).
 
+**Esito** (iterazione 1, T-1.1, novembre 2026; stato *In verifica*). Rimossi `GameState.HasProfile` e `SceneRouter.Boot`.
+
 ### FIX-012 · `CharacterProfile.Variant` oscura il tipo `Godot.Variant`
 
 | Tipo | Priorità | Stima | Componenti |
@@ -226,6 +247,8 @@ La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna,
 
 **Proposta.** Rinominare la proprietà in `Dye` e il record in `DyeDef` (anche le chiavi `VARIANT_` possono restare).
 
+**Esito** (iterazione 1, T-1.1, novembre 2026; stato *In verifica*). `VariantDef` → `DyeDef`, `Variant()` → `Dye()`, `VariantId` → `DyeId`. Le chiavi di testo `VARIANT_*` restano invariate.
+
 ### FIX-013 · Percorso della guardia ricalcolato a ogni passo fisico
 
 | Tipo | Priorità | Stima | Componenti |
@@ -235,6 +258,20 @@ La pianificazione in iterazioni, con le decisioni da prendere prima di ciascuna,
 **Problema.** `_agent.TargetPosition = target` viene assegnato 60 volte al secondo; il `NavigationAgent3D` ricalcola il percorso a ogni assegnazione. Con una guardia è irrilevante, con venti diventa un costo.
 
 **Proposta.** Assegnare la meta solo quando cambia di più di 0,5 m.
+
+---
+
+### FIX-014 · Il livello si ricarica sopra il menu dopo la cattura
+
+| Tipo | Priorità | Stima | Componenti |
+|---|---|---|---|
+| FIX | P2 | XS | `PrologueLevel.cs`, `Boot.cs` |
+
+**Problema.** Trovato dal banco di scenari (iterazione 1). Dopo il banner "Visto", se il giocatore apre la pausa ed esce al menu prima dei 4 secondi, il prologo si ricarica da solo sopra il menu; con il codice ripulito dal motore, compare anche un'eccezione `ObjectDisposedException`.
+
+**Causa.** Il ritardo usava `GetTree().CreateTimer()`: un timer dell'albero, che sopravvive al cambio di scena e poi richiama il livello già liberato.
+
+**Esito** (iterazione 1, T-1.5, novembre 2026; stato *In verifica*). Timer figli della scena (metodo `After`), che muoiono con il livello; stesso schema in `Boot`. Regola registrata come ADR-014. Verifica: scenario `caught_then_quit_stays_in_menu`, confermato fallire sul codice precedente.
 
 ---
 
@@ -327,6 +364,8 @@ Le opzioni 2 e 3 sono complementari (la 3 serve comunque per gli interni del mer
 
 **Proposta.** Classe statica `PhysicsLayers` con costanti nominate (`World`, `Player`, `Guards`, `Interactables`, `Surfaces`) e maschere composte; un test che confronta i valori con `[layer_names]` di `project.godot`; layer e maschere dei nodi principali impostati da codice in `_Ready`, o almeno verificati.
 
+**Esito** (iterazione 1, T-1.4, novembre 2026; stato *In verifica*). `Core/PhysicsLayers` è l'unica fonte nel codice; i test confrontano nomi in `project.godot` e valori nelle scene.
+
 ### CR-009 · Catalogo del personaggio come risorse dell'editor, con validazione
 
 | Tipo | Priorità | Stima |
@@ -362,6 +401,8 @@ Le opzioni 2 e 3 sono complementari (la 3 serve comunque per gli interni del mer
 
 **Criteri di accettazione.** Una pull request che rompe la compilazione o un test viene segnalata in rosso.
 
+**Esito** (iterazione 1, T-1.3, novembre 2026; stato *In verifica*). **Parte 1 in verifica:** test unitari (`tests/ThePaleStitch.Tests`, 44 casi), banco di 11 scenari, mappa di raggiungibilità, `tools/verify`. Esecutore in stile xUnit senza pacchetti, perché l'ambiente di Claude non raggiunge NuGet (ADR-011). **Parte 2 aperta:** xUnit vero, test di scena, CI su GitHub Actions.
+
 ### CR-012 · Fissare la versione dell'SDK
 
 | Tipo | Priorità | Stima |
@@ -369,6 +410,8 @@ Le opzioni 2 e 3 sono complementari (la 3 serve comunque per gli interni del mer
 | CR | P3 | XS |
 
 **Proposta.** Un file `global.json` in `thepalestitch_project/` che richiede l'SDK 10 (`"rollForward": "latestFeature"`): chi clona il progetto riceve un errore chiaro invece del problema incontrato all'installazione. Aggiornare il README con i prerequisiti (fatto in questa consegna).
+
+**Esito** (iterazione 1, T-1.3, novembre 2026; stato *In verifica*). `global.json` alla **radice del repository** (vale per il gioco e per i test), SDK 10.0.100 o successivo.
 
 ### CR-013 · Gamepad e navigazione dei menu da tastiera
 
@@ -416,6 +459,8 @@ Le opzioni 2 e 3 sono complementari (la 3 serve comunque per gli interni del mer
 - Durante un'azione in prima persona la visibilità è neutra, ×1,0 (decisione D-03).
 
 **Criteri di accettazione.** Una pressione di C attiva il furtivo, una seconda lo disattiva; rilasciare il tasto non cambia nulla; durante la serratura l'andatura memorizzata non viene persa.
+
+**Esito** (iterazione 1, T-1.2, novembre 2026; stato *In verifica*). C e Ctrl alternano il furtivo; Shift tenuto corre e al rilascio torna l'andatura scelta (D-04); stato *Immobile* durante le azioni. Verifica: scenario `sneak_is_a_toggle`.
 
 ### CR-023 · Percezione per parti del corpo
 
@@ -535,6 +580,8 @@ Il risultato è un piccolo rapporto con percentuali di successo e tempo medio. F
 | CR | P2 | S |
 
 **Proposta.** Con F3 (solo nelle build di debug): valori numerici di esposizione per ciascun punto di campionamento, raggi di rumore, cono visivo e sospetto di ogni guardia disegnati nel mondo, raycast di luce e vista come linee colorate. Indispensabile per tarare luce e suono, e il modo più rapido per **vedere** gli algoritmi della Technical Guide al lavoro.
+
+**Esito** (iterazione 1, T-1.4, novembre 2026; stato *In verifica*). Autoload `DebugOverlay`, F3. Coni, cerchio di contatto, linea di vista, raggi di luce; pannello numerico. Verifica: scenario `debug_overlay_toggles`; controllo visivo nel playtest.
 
 ### CR-021 · Chiudere i percorsi che aggirano la ronda del prologo
 

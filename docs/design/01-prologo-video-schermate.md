@@ -278,7 +278,7 @@ Regole che ne derivano, e che ogni modifica all'IA deve rispettare:
 | Azione | Tasto |
 |---|---|
 | Muoversi | WASD o frecce |
-| Furtivo | Ctrl (o C) |
+| Furtivo (attiva / disattiva) | C (o Ctrl) |
 | Correre | Shift |
 | Interagire | E |
 | Ruotare la visuale | Q, R |

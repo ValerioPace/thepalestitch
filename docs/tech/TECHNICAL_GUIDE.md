@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Versione del documento | 1.0 |
-| Versione del software descritta | 0.0.1, commit `b5b2eec` |
+| Versione del software descritta | 0.0.1 + iterazione 1 (branch `feature/iterazione-1`) |
 | Data | 21 novembre 2026 |
 | Destinatario | Ingegnere del software senza esperienza di sviluppo di videogiochi |
 | Documenti collegati | [Architettura](ARCHITECTURE.md) · [Backlog](../BACKLOG.md) · [Changelog](../../CHANGELOG.md) |
@@ -234,6 +234,23 @@ Significa: porta la proprietà `modulate:a` (l'opacità) del nodo `notice` a 1 i
 
 > **Nel progetto.** Dissolvenze di `SceneRouter`, comparsa della scritta in `Boot`, anelli di rumore in `NoiseRingSpawner`, cucitura animata in `StitchLine`.
 
+### 5.5 L'interpolazione fisica: fluidità sui monitor veloci
+
+I due orologi del §5.1 creano un problema visibile. Su un monitor a 144 Hz lo schermo viene disegnato 144 volte al secondo, ma i corpi fisici si muovono solo 60 volte. Senza correzioni, in circa due frame su tre il personaggio appare fermo e nel terzo salta di un passo intero: il movimento è a scatti.
+
+L'**interpolazione fisica** (Progetto → Impostazioni → Fisica → Common → *Physics Interpolation*, attiva nel progetto) risolve: il motore disegna ogni corpo in una posizione intermedia tra gli ultimi due passi fisici, in proporzione al tempo trascorso. Il movimento a schermo diventa uniforme, al prezzo di un ritardo di al massimo un passo fisico (16 ms).
+
+Due regole che il codice rispetta:
+
+| Regola | Perché | Nel progetto |
+|---|---|---|
+| Un nodo mosso in `_Process` va escluso: `PhysicsInterpolationMode = Off` | Altrimenti verrebbe interpolato una seconda volta e resterebbe indietro | `CameraRig`, la camera del video, gli anelli di rumore, il manichino che ruota, la testa in prima persona |
+| Chi segue un corpo in `_Process` legge la posizione **disegnata**: `GetGlobalTransformInterpolated()` | `GlobalPosition` restituisce l'ultimo passo fisico, non ciò che si vede | `CameraRig._Process` |
+
+Dopo un teletrasporto (spostare un corpo di colpo) si chiama `ResetPhysicsInterpolation()`, altrimenti per un frame il corpo appare a metà strada.
+
+Lo scenario `motion_is_smooth_at_144hz` (§29) misura la regolarità del movimento a schermo: variazione da un frame all'altro **0,00** con l'interpolazione, **1,18** senza.
+
 ---
 
 ## 6. Lo spazio 3D
@@ -400,13 +417,14 @@ Il codice non controlla mai un tasto specifico. Chiede lo stato di un'**azione**
 | Azione | Tasti | Usata da |
 |---|---|---|
 | `move_forward`, `move_back`, `move_left`, `move_right` | WASD, frecce | `PlayerController`; `move_back` esce anche dalla serratura |
-| `sneak` | Ctrl, C | `PlayerController` |
+| `sneak` | C, Ctrl — **una pressione attiva, una disattiva** | `PlayerController` |
 | `run` | Shift | `PlayerController` |
 | `interact` | E | `PlayerController`, `PrologueLevel` |
 | `camera_rotate_left`, `camera_rotate_right` | Q, R | `CameraRig` |
 | `toggle_view` | V | `CameraRig` |
 | `pause` | Esc | `PauseMenu` |
 | `skip` | Spazio, Invio, Esc | `Boot`, `IntroCinematic` |
+| `debug_overlay` | F3 (solo build di debug) | `DebugOverlay` (§27.2) |
 
 Le domande più comuni all'input:
 
@@ -417,7 +435,7 @@ Input.GetVector(left, right, up, down)  // vettore 2D di movimento, lunghezza ma
 @event.IsActionPressed("interact")      // dentro _UnhandledInput: questo evento è la pressione di interact?
 ```
 
-Il primo e il terzo **interrogano lo stato**; il quarto **reagisce a un evento**. Si usa lo stato per azioni continue (camminare, tenere premuto per scassinare), l'evento per azioni puntuali (aprire la pausa, ruotare la camera).
+Il primo e il terzo **interrogano lo stato**; il quarto **reagisce a un evento**. Si usa lo stato per azioni continue (camminare, correre tenendo Shift, tenere premuto per scassinare), l'evento per azioni puntuali e per gli interruttori (aprire la pausa, ruotare la camera, attivare il furtivo).
 
 > **Nel progetto.** I nomi delle azioni sono raccolti in `scripts/core/InputActions.cs` come `StringName` statici: un errore di battitura diventa un errore di compilazione invece di un tasto che non risponde.
 
@@ -495,6 +513,8 @@ Due versioni diverse entrano in gioco, ed è facile confonderle:
 |---|---|---|
 | **.NET SDK** installato sul PC | **10** | L'editor di Godot 4.7.2 rifiuta di compilare senza un SDK 10 (errore *.NET Sdk not found. The required version is '10.0.x'*) |
 | **Framework di destinazione** nel `.csproj` | `net8.0` | È il minimo supportato dalle librerie di Godot; l'SDK 10 sa compilare per .NET 8 e il gioco gira sul runtime più recente installato |
+
+Il file `global.json` alla radice del repository richiede l'SDK 10 (accetta qualsiasi 10.0.x a partire da 10.0.100): chi clona il progetto con un SDK più vecchio riceve subito un errore chiaro da `dotnet`, invece di un editor che non compila.
 
 Se la compilazione fallisce, l'editor mostra comunque le scene, ma gli script non sono collegati: gli autoload non partono (*Failed to create an autoload, script … is not compiling*) e nulla si muove.
 
@@ -597,7 +617,7 @@ Quando un testo è composto nel codice (ad esempio *"Visibilità: −20%"*) va t
 
 # Parte II — Il progetto passo passo
 
-Ogni capitolo segue lo stesso schema: **a che cosa serve**, **dove sta il codice**, **l'algoritmo passo per passo**, **un esempio con i numeri**, **cosa regolare**. I numeri di riga si riferiscono al commit `b5b2eec`.
+Ogni capitolo segue lo stesso schema: **a che cosa serve**, **dove sta il codice**, **l'algoritmo passo per passo**, **un esempio con i numeri**, **cosa regolare**. I riferimenti al codice sono per file e metodo.
 
 ## 13. Avvio e cambi di scena
 
@@ -623,16 +643,17 @@ Ogni capitolo segue lo stesso schema: **a che cosa serve**, **dove sta il codice
 
 | Passo | Codice | Effetto |
 |---|---|---|
-| 1 | `if (_busy) return;` | Una transizione alla volta |
+| 1 | se `_busy`: memorizza la richiesta ed esci | Una transizione alla volta; l'ultima richiesta arrivata nel frattempo viene eseguita dopo (FIX-008) |
 | 2 | `_fade.MouseFilter = Stop` | Durante la dissolvenza i clic non arrivano alla scena sotto |
 | 3 | tween di `modulate:a` da 0 a 1, poi `await` | Lo schermo diventa nero |
 | 4 | `GetTree().Paused = false`, mouse visibile | Ripulisce lo stato lasciato dalla scena precedente (pausa, mouse catturato in prima persona) |
 | 5 | `ChangeSceneToFile(scenePath)` | Godot libera la scena vecchia e carica la nuova (alla fine del frame) |
 | 6 | due `await` di `ProcessFrame` | Lascia alla nuova scena il tempo di eseguire `_Ready` e posizionarsi |
 | 7 | tween da 1 a 0, poi `await` | Lo schermo torna visibile |
-| 8 | `_busy = false` | Pronto per la prossima transizione |
+| 8 | `finally`: `_busy = false` | Pronto per la prossima transizione, anche se qualcosa è andato storto |
+| 9 | se c'è una richiesta memorizzata, `GoTo` di quella | Nessun cambio scena perso |
 
-Il metodo è `async void`: chi lo chiama prosegue subito. Difetti noti: una richiesta durante una transizione viene persa, e un'eccezione dentro il metodo non arriva a nessuno (FIX-008).
+Il metodo è `async void`: chi lo chiama prosegue subito, e un'eccezione al suo interno non arriverebbe a nessuno. Per questo i passi 3–7 sono in un `try/catch` che registra l'errore con `GD.PushError` e rende di nuovo visibile lo schermo.
 
 ---
 
@@ -763,7 +784,7 @@ Se un Id non esiste, il catalogo restituisce il primo elemento invece di un erro
 
 ### 17.2 Le formule del bilanciamento
 
-Tutti gli effetti di gioco del personaggio sono in tre proprietà di `CharacterProfile`:
+Tutti gli effetti di gioco del personaggio passano da tre proprietà di `CharacterProfile`, che delegano le formule alla classe pura `Rules/CharacterRules` (senza tipi di Godot, coperta dai test unitari che riproducono le tabelle di questo paragrafo):
 
 ```
 NoiseMultiplier      = Costume.Noise      × (1,25 − 0,08 × Passo)
@@ -832,7 +853,9 @@ Vector3 direction = new Vector3(input.X, 0f, input.Y).Rotated(Vector3.Up, yaw);
 
 Il vettore 2D diventa un vettore 3D orizzontale (Y del 2D → Z del 3D, perché avanti è −Z), poi viene ruotato attorno all'asse verticale dello yaw della camera (45° all'avvio).
 
-**3. Scegliere l'andatura**, in ordine di priorità: input bloccato → *Furtivo*; Ctrl → *Furtivo*; Shift → *Di corsa*; altrimenti *Al passo*.
+**3. Scegliere l'andatura**, in ordine di priorità: input bloccato da un'azione → *Immobile* (`Busy`); Shift tenuto premuto → *Di corsa*; furtivo attivato → *Furtivo*; altrimenti *Al passo*.
+
+Il furtivo è un **interruttore** (CR-022): `_UnhandledInput` inverte `SneakToggled` a ogni pressione di C o Ctrl. Non dipende dal tasto tenuto premuto, quindi resta attivo finché il giocatore non preme di nuovo. La corsa, invece, si tiene: è un'azione consapevole e rischiosa, e al rilascio di Shift torna l'andatura scelta (decisione D-04). Durante un'azione l'andatura diventa *Immobile*, ma `SneakToggled` non cambia: finita l'azione il personaggio torna com'era.
 
 **4. Accelerare verso la velocità voluta.**
 
@@ -869,7 +892,7 @@ NoiseBus.Emit(posizione, raggio, Footstep, giocatore)
 
 La superficie è quella della `SurfaceZone` con priorità più alta tra quelle in cui il giocatore si trova; fuori da ogni zona vale il selciato (×1,0). Il calcolo del rumore continua nel `NoiseBus` (§21).
 
-La barra del rumore dell'HUD (`NoiseLevel`) sale al valore `raggio_effettivo / 12 m` a ogni passo e scende di 1,2 unità al secondo: è un indicatore, non entra nella simulazione.
+`NoiseBus.Emit` restituisce il raggio effettivamente emesso, dopo il mascheramento: la barra del rumore dell'HUD (`NoiseLevel`) sale a quel valore diviso 12 m e scende di 1,2 unità al secondo. Così la barra mostra esattamente il numero che ricevono le guardie. È un indicatore, non entra nella simulazione.
 
 ### 18.3 La visibilità
 
@@ -877,7 +900,7 @@ La barra del rumore dell'HUD (`NoiseLevel`) sale al valore `raggio_effettivo / 1
 Visibility = clamp(Exposure × VisibilityMultiplier × fattoreAndatura, 0, 1)
 ```
 
-`Exposure` viene dal `LightSensor` (§20). Il fattore d'andatura vale 0,75 in furtivo, 1,0 al passo, 1,15 di corsa. `Visibility` è il numero che legge la guardia e che l'occhio dell'HUD mostra.
+`Exposure` viene dal `LightSensor` (§20). Il fattore d'andatura vale 0,75 in furtivo, 1,0 al passo, 1,15 di corsa e 1,0 da *Immobile*, cioè durante un'azione come la serratura (neutro per decisione D-03). I quattro valori si regolano nell'Inspector del nodo `Player`, gruppo "Visibility by stance". `Visibility` è il numero che legge la guardia e che l'occhio dell'HUD mostra.
 
 ### 18.4 L'interazione
 
@@ -1011,7 +1034,7 @@ raggio_emesso = raggio × (1 − 0,6 × AmbientMask)
 se raggio_emesso ≤ 0,05 m: il rumore non viene nemmeno pubblicato
 ```
 
-`AmbientMask` va da 0 (silenzio) a 1 (campana a pieno volume): un rumore forte attorno copre fino al 60 % dei passi.
+`AmbientMask` va da 0 (silenzio) a 1 (campana a pieno volume): un rumore forte attorno copre fino al 60 % dei passi. La formula e le costanti (0,6 di mascheramento massimo, 0,45 per muro) stanno in un solo punto, la classe pura `Rules/StealthRules`, usata dal bus e coperta dai test unitari.
 
 **2. Pubblicazione.** `NoiseBus.Emitted` notifica in modo sincrono tutti gli iscritti (le guardie e il disegnatore di anelli).
 
@@ -1159,12 +1182,12 @@ In furtivo (visibilità 0,49) servono circa 2 s per l'allarme. Nel vicolo buio (
 ```
 OnNoise(rumore):
     ignora se il rumore è suo, se è in allarme, o se non lo sente (§21.1)
-    vicinanza = 1 − distanza(rumore, guardia) / raggio del rumore
-    sospetto = min(0,9; max(sospetto, 0,4 + 0,3 × vicinanza))
+    vicinanza = 1 − distanza(rumore, orecchie) / raggio del rumore
+    sospetto = max(sospetto, min(0,9; 0,4 + 0,3 × vicinanza))
     vai a indagare nel punto del rumore
 ```
 
-Un rumore porta il sospetto almeno a 0,4 (indagine), fino a 0,7 se è molto vicino. Da solo non fa mai scattare l'allarme: il tetto è 0,9. C'è un difetto: se il sospetto era già sopra 0,9, un rumore lo **abbassa** a 0,9 (FIX-003).
+Un rumore porta il sospetto almeno a 0,4 (indagine), fino a 0,7 se è molto vicino. Da solo non fa mai scattare l'allarme: il contributo dell'udito si ferma a 0,9. E non **abbassa** mai un sospetto già più alto (prima di FIX-003 lo riportava a 0,9). La distanza si misura dalle orecchie (il nodo `Eyes`), lo stesso punto usato per decidere se il rumore si sente. La formula è `StealthRules.SuspicionAfterHearing`, con test unitari.
 
 ### 22.5 Movimento e navigazione
 
@@ -1224,6 +1247,8 @@ se E è tenuto premuto:
 
 Il flag `_over` impedisce che i due eventi si sovrappongano e ferma tutta la logica del livello.
 
+I ritardi di 4 e 7 secondi usano un `Timer` **figlio del livello** (metodo `After`), non un timer dell'albero: se nel frattempo il giocatore esce al menu, il timer muore con il livello. Prima (FIX-014, trovato dal banco di scenari) il prologo si ricaricava da solo sopra il menu.
+
 ---
 
 ## 24. HUD e pausa
@@ -1246,6 +1271,17 @@ L'HUD **legge** lo stato a ogni frame (polling) e **riceve comandi** dal livello
 
 I testi dell'andatura e della superficie sono chiavi (`STANCE_WALK`, `SURFACE_GRAVEL`) tradotte in automatico dai `Label`. Il prompt invece è composto da codice ed è escluso dall'auto-traduzione.
 
+**La riga dei suggerimenti ha due canali** (FIX-004):
+
+| Canale | Metodo | Durata | Uso |
+|---|---|---|---|
+| Contesto | `SetContextHint(chiave)` | finché non viene sostituito o cancellato (`""`) | Istruzioni dell'azione in corso: la serratura |
+| Notifica | `Notify(chiave, secondi)` | i secondi indicati | Tutorial, campana |
+
+Una notifica copre il contesto finché dura; quando scade, il contesto ricompare. Così il rintocco della campana non cancella più le istruzioni della serratura. Ogni cambio usa un solo tween di dissolvenza: il precedente viene fermato con `Kill()` (FIX-010).
+
+**Tasti nei testi** (FIX-009). I suggerimenti non scrivono più "premi E": scrivono un segnaposto con il nome dell'azione, `{interact}`, e `Hud.FillKeys` lo sostituisce con il tasto davvero associato nella Input Map. `{move}` sta per i quattro tasti di movimento. Se un domani il tasto cambia, i testi restano veri.
+
 ### 24.2 La pausa
 
 Esc apre il menu di pausa (`PauseMenu`), che imposta `GetTree().Paused = true`. Che cosa si ferma lo decide la proprietà `ProcessMode` di ogni nodo:
@@ -1258,7 +1294,7 @@ Esc apre il menu di pausa (`PauseMenu`), che imposta `GetTree().Paused = true`. 
 | `WhenPaused` | Gira **solo** in pausa |
 | `Disabled` | Non gira mai |
 
-`PauseMenu` e `SceneRouter` sono `Always`: possono ricevere input e fare dissolvenze anche a gioco fermo. I timer creati con `GetTree().CreateTimer()` di default continuano anche in pausa, per questo il ritorno al menu dopo il banner funziona comunque.
+`PauseMenu` e `SceneRouter` sono `Always`: possono ricevere input e fare dissolvenze anche a gioco fermo. Anche i timer del livello per il banner sono `Always`, per questo il ritorno al menu dopo il banner funziona comunque.
 
 `PauseMenu` ricorda la modalità del mouse prima della pausa (catturato in prima persona) e la ripristina alla ripresa.
 
@@ -1340,9 +1376,9 @@ In `scripts/character/CharacterCatalog.cs`, dentro `Costumes`:
 ```csharp
 new("sexton", Visibility: 0.90f, Noise: 0.95f, BeltSlots: 4, new[]
 {
-    new VariantDef("sexton_grave", new Color("1d1d1b"), new Color("3f3c35")),
-    new VariantDef("sexton_rust",  new Color("2c1d16"), new Color("5a3a28")),
-    new VariantDef("sexton_bone",  new Color("6d685c"), new Color("9a9384")),
+    new DyeDef("sexton_grave", new Color("1d1d1b"), new Color("3f3c35")),
+    new DyeDef("sexton_rust",  new Color("2c1d16"), new Color("5a3a28")),
+    new DyeDef("sexton_bone",  new Color("6d685c"), new Color("9a9384")),
 }),
 ```
 
@@ -1367,6 +1403,8 @@ Modifica la riga in `localization/strings.csv`, salva, torna nell'editor: Godot 
 3. aggiungilo in Progetto → Impostazioni progetto → Localizzazione → Traduzioni;
 4. il pulsante della lingua nel menu oggi alterna solo inglese e italiano (`MainMenu.ToggleLanguage`): va esteso.
 
+Per nominare un tasto in un testo si scrive il nome dell'azione tra graffe, ad esempio `{interact}` o `{move}`, mai la lettera (§24.1). I test unitari controllano che i segnaposto siano gli stessi in tutte le lingue, che nominino azioni esistenti e che nessun suggerimento scriva un tasto in chiaro.
+
 ### 26.7 Bilanciare
 
 | Che cosa | Dove | Come |
@@ -1376,11 +1414,11 @@ Modifica la riga in `localization/strings.csv`, salva, torna nell'editor: Godot 
 | Peso di luci, luna, luce minima | Nodo `Player/LightSensor` (Inspector) | `Local Light Weight`, `Sky Light Weight`, `Ambient Floor` |
 | Campana, rumore della serratura | Nodo `Prologue` (Inspector) | Gruppi "Abbey bell", "Lock" |
 | Rumorosità delle superfici | `SurfaceZone.Loudness` (codice) | |
-| Attenuazione dei muri, mascheramento massimo | `NoiseBus.WallDamping`, `MaxMaskCut` (codice) | |
-| Effetto di abilità e costumi | `CharacterProfile` (codice) | Le tre formule del §17.2 |
-| Fattori di andatura sulla visibilità | `PlayerController.UpdateVisibility` (codice) | 0,75 / 1 / 1,15 |
+| Attenuazione dei muri, mascheramento massimo, tetto dell'udito | `Rules/StealthRules` (codice, con test) | |
+| Effetto di abilità e costumi | `Rules/CharacterRules` (codice, con test) | Le tre formule del §17.2 |
+| Fattori di andatura sulla visibilità | Nodo `Player` (Inspector) | Gruppo "Visibility by stance": 0,75 / 1 / 1,15 / 1 |
 
-Per i valori nell'Inspector modifica la **scena** (`Player.tscn`, `Watchman.tscn`), non il default nel codice (§9.2).
+Per i valori nell'Inspector modifica la **scena** (`Player.tscn`, `Watchman.tscn`), non il default nel codice (§9.2). Se cambi una formula in `Rules/`, aggiorna anche i test che la descrivono: sono la tabella ufficiale dei numeri.
 
 ### 26.8 Aggiungere un'azione di input
 
@@ -1413,6 +1451,7 @@ Vedi §16.3.
 
 - **Output e Debugger**: ogni errore a runtime ha uno stack; cliccandolo si apre il file alla riga giusta.
 - **`GD.Print($"sospetto {Suspicion}")`**: stampa nel pannello Output. Utile, ma da togliere prima del commit.
+- **Pannello di debug, F3** (CR-020, solo nelle build di debug, quindi anche avviando dall'editor). Nel mondo disegna: il cono visivo di ogni guardia (bianco in ronda, arancio in indagine, rosso in allarme) e il cerchio di contatto di 1,3 m; la linea di vista verso il personaggio (verde libera, rossa bloccata); ogni raggio di luce che il sensore ha testato (giallo se illumina, rosso scuro se un muro lo blocca). A schermo mostra andatura, esposizione, fattore del personaggio, visibilità, raggio dell'ultimo passo, campana e, per ogni guardia, stato, sospetto, valore della vista e distanza. È il modo più rapido per vedere al lavoro gli algoritmi dei capitoli 20–22.
 - **Albero remoto** (§10.3): valori dal vivo di qualsiasi nodo del gioco in esecuzione.
 - **Menu Debug dell'editor**: *Forme di collisione visibili* mostra le capsule e i box fisici; *Navigazione visibile* mostra la mesh di navigazione. Entrambi si attivano prima di premere F5.
 - **Profiler** (Debugger → Profiler): tempo speso per funzione e per frame.
@@ -1428,7 +1467,8 @@ Vedi §16.3.
 |---|---|
 | `main` | Versioni stabili, una per release, con tag `v0.0.1`, `v0.1.0`… |
 | `develop` | Integrazione del lavoro in corso |
-| `feature/<id>-<nome>` | Una voce del backlog: `feature/CR-003-casa-mercante`, `fix/FIX-001-collisioni` |
+| `feature/iterazione-<n>` | Il lavoro di un'iterazione del [Piano](../PLAN.md), un commit per task; si integra in `develop` dopo il playtest |
+| `feature/<id>-<nome>` | Una voce isolata del backlog, fuori da un'iterazione: `fix/FIX-013-meta-guardia` |
 
 ### 28.2 Che cosa versionare
 
@@ -1440,15 +1480,79 @@ Vedi §16.3.
 | `localization/*.csv` e `*.translation` | |
 | Asset sorgente (font, texture, modelli) | |
 
-Il `.gitignore` attuale esclude `.godot/` e `/android/`; quando userai un IDE conviene aggiungere le sue cartelle.
+Il `.gitignore` del progetto esclude `.godot/` e `/android/`; quello alla radice esclude il rapporto `verify-report/`, la build dei test e le cartelle degli IDE.
 
 ### 28.3 Prima di ogni commit
 
-1. Compila (martello) senza errori né avvisi.
+1. Lancia la verifica completa (§29): deve finire con **VERIFY: GREEN**.
 2. Avvia il gioco e prova almeno il percorso che hai toccato.
 3. Aggiorna `CHANGELOG.md` nella sezione `[Unreleased]`.
 4. Se la modifica chiude una voce del backlog, aggiornane lo stato in `docs/BACKLOG.md`.
 5. Messaggio nel formato *Conventional Commits*, come già fai: `feat: …`, `fix: …`, `docs: …`, `refactor: …`, con l'Id della voce: `fix(FIX-001): il giocatore non attraversa più le guardie`.
+
+---
+
+## 29. Verifica automatica
+
+Dall'iterazione 1 ogni modifica passa da una verifica automatica in quattro passi. Un solo comando dalla radice del repository:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\verify.ps1
+```
+
+(su Linux `tools/verify.sh`; il percorso di Godot si passa con `-Godot` o con la variabile `GODOT`; serve l'eseguibile *console* di Godot, che scrive nel terminale). Il risultato finale è **VERIFY: GREEN** o **VERIFY: RED**; log e rapporti finiscono in `verify-report/`.
+
+| Passo | Che cosa fa | Fallisce se |
+|---|---|---|
+| 1. Build | Compila il gioco con gli avvisi trattati come errori | C'è un errore o anche un solo avviso |
+| 2. Test unitari | `tests/ThePaleStitch.Tests`, circa 40 casi | Un caso fallisce |
+| 3. Importazione | Fa importare a Godot i file nuovi (testi, script) | — |
+| 4. Scenari di gioco | Avvia il gioco senza finestra ed esegue gli scenari | Un controllo fallisce, oppure nel log compare un errore o un avviso del motore |
+
+### 29.1 Test unitari
+
+Coprono il codice **puro**, senza Godot: le cartelle `scripts/rules/` e `scripts/core/PhysicsLayers.cs` vengono compilate direttamente nel progetto di test. In più, i test leggono i file di testo del progetto e controllano che siano coerenti con il codice:
+
+| Classe | Che cosa garantisce |
+|---|---|
+| `StealthRulesTests` | Mascheramento, muri, sospetto all'udito; l'esempio numerico del §21.3 |
+| `CharacterRulesTests` | La tabella del bilanciamento del §17.2 |
+| `ProjectConfigTests` | Nomi dei layer, azioni di input, layer e maschere nelle scene, interpolazione fisica attiva |
+| `LocalizationTests` | CSV completo, chiavi uniche, segnaposto coerenti, nessuna chiave usata nel codice e mancante nel CSV |
+
+Si eseguono da soli con `dotnet run --project tests/ThePaleStitch.Tests`, eventualmente con un filtro (`-- Hearing`). Il progetto usa un esecutore minimo con la stessa sintassi di xUnit (`[Fact]`, `[Theory]`, `Assert`), perché l'ambiente di sviluppo di Claude non può scaricare pacchetti NuGet. Passare a xUnit vero, con la CI, significa cancellare la cartella `Framework/` e aggiungere tre pacchetti.
+
+Per aggiungere un test: un metodo `public void` con `[Fact]` in una classe della cartella `Tests/`.
+
+### 29.2 Scenari di gioco
+
+Gli scenari stanno in `scripts/dev/Scenarios.cs` e girano con `dev/ScenarioRunner.tscn`:
+
+```
+godot --headless --fixed-fps 144 --path thepalestitch_project res://dev/ScenarioRunner.tscn -- [--scenario=nome] [--report=cartella]
+```
+
+`--headless` non apre finestre; `--fixed-fps 144` fa scorrere il tempo simulato alla massima velocità possibile, con 144 frame disegnati per ogni 60 passi fisici, come su un monitor veloce. Ogni scenario carica una scena vera, simula input e tempo, e registra controlli con `c.Check(nome, condizione, dettaglio)`.
+
+| Scenario | Copre | Che cosa verifica |
+|---|---|---|
+| `scenes_load` | — | Ogni scena principale si carica |
+| `prologue_reachability` | CR-021 | L'area calpestabile del prologo è quella progettata (circa 382 m²) e nessun punto dietro le case è raggiungibile. Produce l'immagine `prologue_reachability.png` |
+| `player_cannot_cross_guard` | FIX-001 | Camminando contro la guardia i corpi non si sovrappongono |
+| `guard_hears_walking_from_behind` | — | Avvicinarsi camminando alle spalle della guardia porta all'allarme |
+| `lock_hint_survives_bell` | FIX-004 | Le istruzioni della serratura tornano dopo la notifica della campana |
+| `hint_keys_are_bound_keys` | FIX-009 | I suggerimenti mostrano i tasti reali, nessun segnaposto rimasto |
+| `sneak_is_a_toggle` | CR-022, FIX-005 | Interruttore del furtivo, corsa tenuta, andatura ripristinata dopo la serratura, visibilità neutra |
+| `caught_then_quit_stays_in_menu` | FIX-014 | Dopo la cattura, uscire al menu non fa ricomparire il livello |
+| `debug_overlay_toggles` | CR-020 | F3 accende e spegne il pannello |
+| `scene_requests_are_not_lost` | FIX-008 | Due cambi scena ravvicinati portano al secondo |
+| `motion_is_smooth_at_144hz` | FIX-002 | Movimento a schermo uniforme con l'interpolazione |
+
+La **mappa di raggiungibilità** (`scripts/dev/ReachabilityMap.cs`) è lo strumento del principio di level design "il perimetro si verifica, non si presume": calcola una mesh di navigazione grande quanto il giocatore e conta l'area raggiungibile dal punto di partenza. Ogni livello futuro avrà il suo scenario con l'area attesa.
+
+Per aggiungere uno scenario: un metodo `async Task Nome(ScenarioContext c)` in `Scenarios.cs` e una riga nella lista `All`.
+
+Il codice di `scripts/dev/` (pannello F3 e banco di scenari) è compilato nel gioco ma si attiva solo nelle build di debug; andrà escluso dalle esportazioni quando ci saranno (CR-011, seconda parte).
 
 ---
 
@@ -1470,6 +1574,7 @@ Il `.gitignore` attuale esclude `.godot/` e `/android/`; quando userai un IDE co
 | **Gruppo** | Etichetta assegnata ai nodi per trovarli per categoria |
 | **HUD** | Informazioni sovrapposte alla vista di gioco |
 | **Inspector** | Pannello dell'editor con le proprietà del nodo selezionato |
+| **Interpolazione fisica** | Disegnare i corpi tra due passi fisici, per un movimento uniforme sui monitor veloci (§5.5) |
 | **Lerp** | Interpolazione lineare tra due valori |
 | **Mesh** | Geometria fatta di triangoli |
 | **Mesh di navigazione** | Superficie camminabile su cui si calcolano i percorsi |
@@ -1480,6 +1585,7 @@ Il `.gitignore` attuale esclude `.godot/` e `/android/`; quando userai un IDE co
 | **Raycast** | Interrogazione fisica: il segmento da A a B tocca qualcosa? |
 | **Risorsa** | Dato condiviso salvato su file (mesh, materiale, tema, traduzione) |
 | **Scena** | Albero di nodi salvato su file `.tscn`, istanziabile |
+| **Scenario** | Prova automatica che avvia una scena vera, simula input e tempo e controlla il risultato (§29.2) |
 | **Segnale** | Evento dichiarato da un nodo a cui altri si collegano |
 | **Shader** | Programma eseguito dalla scheda video per ogni pixel o vertice |
 | **Smorzamento esponenziale** | Avvicinamento graduale indipendente dagli FPS: `Lerp(a, b, 1 − e^(−k·dt))` |

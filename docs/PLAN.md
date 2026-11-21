@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Versione del documento | 1.0 |
+| Versione del documento | 1.1 |
 | Data | 21 novembre 2026 |
-| Stato del software | 0.0.1 + CR-021 (perimetro del prologo) |
+| Stato del software | 0.0.1 + CR-021 + iterazione 1 (branch `feature/iterazione-1`, in playtest) |
 | Documenti collegati | [Backlog](BACKLOG.md) · [Architettura](tech/ARCHITECTURE.md) · [Technical Guide](tech/TECHNICAL_GUIDE.md) · [Design](design/01-prologo-video-schermate.md) · [Changelog](../CHANGELOG.md) |
 
 Il [Backlog](BACKLOG.md) dice **che cosa** c'è da fare. Questo piano dice **in che ordine**, **come** viene eseguito ogni task da Claude in modo agentico, e **quali decisioni** servono dal committente prima di ciascun blocco di lavoro.
@@ -166,6 +166,18 @@ flowchart LR
 
 **Fine iterazione 1:** rilascio `0.1.0`.
 
+#### Avanzamento dell'iterazione 1
+
+| Task | Stato | Note |
+|---|---|---|
+| T-1.1 | In verifica | |
+| T-1.2 | In verifica | Andatura *Immobile* durante le azioni |
+| T-1.3 | In verifica | Test con un esecutore in stile xUnit senza pacchetti (l'ambiente di Claude non raggiunge NuGet, ADR-011); scenari a `--fixed-fps 144` per riprodurre un monitor veloce |
+| T-1.4 | In verifica | |
+| T-1.5 | In verifica | Il banco ha trovato un difetto nuovo, FIX-014, corretto nello stesso task |
+
+Esito della verifica: **VERIFY GREEN**, compilazione senza avvisi, 44 test unitari, 37 controlli in 11 scenari, nessun errore o avviso del motore nel log. Le modifiche dei cinque task toccano in parte gli stessi file (`Hud`, `PlayerController`, `PrologueLevel`): i commit sono uno per task sul branch dell'iterazione, invece di un branch per voce, con gli Id delle voci nel messaggio. Il rilascio `0.1.0` segue il playtest e il merge del committente.
+
 ### Iterazione 2 — "Nessuna stupidità": guardie credibili
 
 **Obiettivo misurabile.** Il percorso di riferimento del prologo riesce nella percentuale fissata da D-09; i percorsi negligenti, compreso "fermo in piedi dietro la guardia", falliscono.
@@ -269,7 +281,7 @@ Le decisioni D-02, D-03 e D-04 sono state prese il 21 novembre 2026 (vedi "Decis
 | — | Nessuna scorciatoia che aggiri la sfida; perimetro chiuso con muri | Adottato come principio di level design (CR-021) | 21 novembre 2026 |
 | — | Furtivo a interruttore, corsa tenuta premuta | Requisito (CR-022) | 21 novembre 2026 |
 | — | "Difficile, non impossibile, nessuna stupidità degli avversari" | Principio della furtività (Design §6) | 21 novembre 2026 |
-| D-02 | Commit git | Claude committa su branch dedicati, uno per voce di backlog; il committente fa il merge dopo il playtest. Serve il permesso di cancellazione nella cartella del progetto, da chiedere all'avvio dell'iterazione 1 | 21 novembre 2026 |
+| D-02 | Commit git | Claude committa su branch dedicati (in pratica uno per iterazione, un commit per task: vedi l'avanzamento dell'iterazione 1); il committente fa il merge dopo il playtest. Serve il permesso di cancellazione nella cartella del progetto, da chiedere all'avvio dell'iterazione 1 | 21 novembre 2026 |
 | D-03 | Visibilità durante un'azione in prima persona | Neutra (×1,0): il rischio viene dal rumore degli attrezzi e dal tempo | 21 novembre 2026 |
 | D-04 | Furtivo e corsa | Tenendo Shift si corre; al rilascio si torna nel furtivo scelto | 21 novembre 2026 |
 | D-05 | Che cosa succede quando la guardia coglie il personaggio in luce | **Busto in luce nel cono: allarme istantaneo** (con il volto riconosciuto, è game over). **Spalla, braccio o gamba in luce: forte sospetto, non certezza.** La guardia ha un tempo di reazione reale, perché non sa se ha visto un ladro o un bagliore; ma è in tensione, perché deve sorvegliare e non c'è nulla che la distragga. Il sospetto cambia i suoi schemi di ronda, con brusche girate di testa verso vicoli e nascondigli | 21 novembre 2026 |
