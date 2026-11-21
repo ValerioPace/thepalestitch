@@ -13,18 +13,24 @@ public partial class Mannequin : Node3D
     /// <summary>Degrees per second. Used by the creation screen to show the figure all round.</summary>
     [Export] public float TurnSpeed;
 
+    public override void _Ready()
+    {
+        // Turned every rendered frame on the creation screen: no physics interpolation.
+        if (TurnSpeed != 0f) PhysicsInterpolationMode = PhysicsInterpolationModeEnum.Off;
+    }
+
     public override void _Process(double delta)
     {
         if (TurnSpeed != 0f)
             RotateY(Mathf.DegToRad(TurnSpeed) * (float)delta);
     }
 
-    public void Apply(VariantDef variant)
+    public void Apply(DyeDef dye)
     {
-        Paint("Body", variant.Cloth);
-        Paint("Hood", variant.Cloth.Darkened(0.15f));
-        Paint("Belt", variant.Trim);
-        Paint("Cowl", variant.Trim.Darkened(0.2f));
+        Paint("Body", dye.Cloth);
+        Paint("Hood", dye.Cloth.Darkened(0.15f));
+        Paint("Belt", dye.Trim);
+        Paint("Cowl", dye.Trim.Darkened(0.2f));
     }
 
     private void Paint(string nodeName, Color color)

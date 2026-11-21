@@ -1,4 +1,5 @@
 using Godot;
+using ThePaleStitch.Core;
 
 namespace ThePaleStitch.Stealth;
 
@@ -13,6 +14,9 @@ namespace ThePaleStitch.Stealth;
 /// </summary>
 public partial class LightSensor : Node3D
 {
+    /// <summary>One light test of the last measurement, kept for the debug overlay.</summary>
+    public readonly record struct LightRay(Vector3 Point, Vector3 Light, bool Blocked, float Contribution);
+
     public const string LightGroup = "stealth_light";
 
     /// <summary>Light that reaches everywhere, even the deepest alley.</summary>
@@ -29,6 +33,11 @@ public partial class LightSensor : Node3D
 
     /// <summary>Smoothed exposure, 0..1.</summary>
     public float Exposure { get; private set; }
+
+    /// <summary>When true, the rays of each measurement are kept in <see cref="Rays"/> (debug overlay).</summary>
+    public bool RecordRays { get; set; }
+
+    public System.Collections.Generic.List<LightRay> Rays { get; } = new();
 
     private float _target;
     private int _frame;
@@ -52,6 +61,7 @@ public partial class LightSensor : Node3D
         var space = GetWorld3D().DirectSpaceState;
         Vector3 origin = GetParent<Node3D>().GlobalPosition;
         float total = 0f;
+        if (RecordRays) Rays.Clear();
 
         foreach (float height in SampleHeights)
         {
@@ -77,14 +87,16 @@ public partial class LightSensor : Node3D
             case DirectionalLight3D sun:
             {
                 // A directional light shines along its -Z, so the sky is towards +Z.
-                Vector3 towardsLight = sun.GlobalBasis.Z.Normalized();
-                return Blocked(space, point, point + towardsLight * 80f) ? 0f : sun.LightEnergy * SkyLightWeight;
+                Vector3 sky = point + sun.GlobalBasis.Z.Normalized() * 80f;
+                bool blocked = Blocked(space, point, sky);
+                return Record(point, point + sun.GlobalBasis.Z.Normalized() * 3f, blocked, blocked ? 0f : sun.LightEnergy * SkyLightWeight);
             }
             case OmniLight3D omni:
             {
                 float falloff = Falloff(point.DistanceTo(omni.GlobalPosition), omni.OmniRange);
-                if (falloff <= 0f || Blocked(space, point, omni.GlobalPosition)) return 0f;
-                return omni.LightEnergy * falloff * LocalLightWeight;
+                if (falloff <= 0f) return 0f;
+                bool blocked = Blocked(space, point, omni.GlobalPosition);
+                return Record(point, omni.GlobalPosition, blocked, blocked ? 0f : omni.LightEnergy * falloff * LocalLightWeight);
             }
             case SpotLight3D spot:
             {
@@ -92,12 +104,19 @@ public partial class LightSensor : Node3D
                 float falloff = Falloff(toPoint.Length(), spot.SpotRange);
                 if (falloff <= 0f) return 0f;
                 float angle = Mathf.RadToDeg((-spot.GlobalBasis.Z).AngleTo(toPoint));
-                if (angle > spot.SpotAngle || Blocked(space, point, spot.GlobalPosition)) return 0f;
-                return spot.LightEnergy * falloff * LocalLightWeight;
+                if (angle > spot.SpotAngle) return 0f;
+                bool blocked = Blocked(space, point, spot.GlobalPosition);
+                return Record(point, spot.GlobalPosition, blocked, blocked ? 0f : spot.LightEnergy * falloff * LocalLightWeight);
             }
             default:
                 return 0f;
         }
+    }
+
+    private float Record(Vector3 point, Vector3 light, bool blocked, float contribution)
+    {
+        if (RecordRays) Rays.Add(new LightRay(point, light, blocked, contribution));
+        return contribution;
     }
 
     private static float Falloff(float distance, float range)
@@ -109,7 +128,7 @@ public partial class LightSensor : Node3D
 
     private bool Blocked(PhysicsDirectSpaceState3D space, Vector3 from, Vector3 to)
     {
-        var query = PhysicsRayQueryParameters3D.Create(from, to, NoiseBus.WorldMask, _exclude);
+        var query = PhysicsRayQueryParameters3D.Create(from, to, PhysicsLayers.OccluderMask, _exclude);
         return space.IntersectRay(query).Count > 0;
     }
 }

@@ -30,12 +30,12 @@ public partial class PauseMenu : Control
         if (paused)
         {
             _mouseBefore = Input.MouseMode;
-            Input.MouseMode = Input.MouseModeEnum.Visible;
+            Mouse.SetMode(Input.MouseModeEnum.Visible);
             GetNode<Button>("%Resume").GrabFocus();
         }
         else
         {
-            Input.MouseMode = _mouseBefore;
+            Mouse.SetMode(_mouseBefore);
         }
     }
 }

@@ -35,6 +35,8 @@ public partial class IntroCinematic : Node3D
     public override void _Ready()
     {
         _camera = GetNode<Camera3D>("Camera");
+        // The film camera is moved every rendered frame: no physics interpolation.
+        _camera.PhysicsInterpolationMode = PhysicsInterpolationModeEnum.Off;
         _black = GetNode<ColorRect>("%Black");
         _subtitle = GetNode<Label>("%Subtitle");
         _card = GetNode<Label>("%Card");

@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using ThePaleStitch.AI;
 using ThePaleStitch.Core;
@@ -94,7 +95,7 @@ public partial class PrologueLevel : Node3D
     {
         if (_picking || _hintIndex >= Hints.Length || _clock < 1.0f) return;
         if (_player.GlobalPosition.X < Hints[_hintIndex].X) return;
-        _hud.ShowHint(Hints[_hintIndex].Key, 8f);
+        _hud.Notify(Hints[_hintIndex].Key, 8f);
         _hintIndex++;
     }
 
@@ -128,7 +129,7 @@ public partial class PrologueLevel : Node3D
         _pickNoise = 0f;
         _rig.EnterFirstPerson(_door.LookTarget, scripted: true);
         _hud.SetObjective("PROLOGUE_OBJ_PICK");
-        _hud.ShowHint("HINT_LOCKPICK", 0f);
+        _hud.SetContextHint("HINT_LOCKPICK");
         _hud.SetProgress(_pickProgress);
     }
 
@@ -139,7 +140,7 @@ public partial class PrologueLevel : Node3D
             _picking = false;
             _rig.ExitFirstPerson();
             _hud.SetProgress(-1f);
-            _hud.ShowHint("", 0f);
+            _hud.SetContextHint("");
             _hud.SetObjective("PROLOGUE_OBJ_REACH");
             return;
         }
@@ -166,9 +167,9 @@ public partial class PrologueLevel : Node3D
         _door.Enabled = false;
         NoiseBus.AmbientMask = 0f;
         _hud.SetProgress(-1f);
-        _hud.ShowHint("", 0f);
+        _hud.SetContextHint("");
         _hud.ShowBanner("PROLOGUE_END_TITLE", "PROLOGUE_END_BODY");
-        GetTree().CreateTimer(7.0).Timeout += () => SceneRouter.Instance.GoTo(SceneRouter.MainMenu, 1.2f);
+        After(7.0, () => SceneRouter.Instance.GoTo(SceneRouter.MainMenu, 1.2f));
     }
 
     private void OnAlarm(Watchman watchman)
@@ -180,10 +181,24 @@ public partial class PrologueLevel : Node3D
         _player.InputLocked = true;
         NoiseBus.AmbientMask = 0f;
         _hud.SetProgress(-1f);
-        _hud.ShowHint("", 0f);
+        _hud.SetContextHint("");
         _hud.ShowBanner("CAUGHT_TITLE", "CAUGHT_BODY");
-        GetTree().CreateTimer(4.0).Timeout += () => SceneRouter.Instance.GoTo(SceneRouter.Prologue);
+        After(4.0, () => SceneRouter.Instance.GoTo(SceneRouter.Prologue));
     }
 
     private void OnViewChanged(bool firstPerson) => _hud.SetFirstPerson(firstPerson);
+
+    /// <summary>
+    /// Run <paramref name="action"/> after <paramref name="seconds"/>, unless the
+    /// level is gone by then (FIX-014). The timer is a child of the level, so it
+    /// dies with it: leaving to the menu during the "caught" banner must not
+    /// reload the level four seconds later.
+    /// </summary>
+    private void After(double seconds, Action action)
+    {
+        var timer = new Timer { WaitTime = seconds, OneShot = true, ProcessMode = ProcessModeEnum.Always };
+        timer.Timeout += action;
+        AddChild(timer);
+        timer.Start();
+    }
 }

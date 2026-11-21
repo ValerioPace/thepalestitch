@@ -10,6 +10,11 @@ namespace ThePaleStitch.Player;
 /// <summary>
 /// The cutthroat. Moves relative to the isometric camera, makes noise with
 /// every step according to stance, floor and garb, and knows how visible he is.
+///
+/// Stance: creeping is a toggle (press the sneak key once to start, once to
+/// stop); running is held, and on release the chosen stance comes back. While
+/// the legs are locked by an action (a lock, first person) the stance is
+/// <see cref="Stance.Busy"/>, which does not touch the chosen one.
 /// </summary>
 public partial class PlayerController : CharacterBody3D
 {
@@ -20,6 +25,8 @@ public partial class PlayerController : CharacterBody3D
         Sneak,
         Walk,
         Run,
+        /// <summary>Legs locked by an action in progress (lock, first person).</summary>
+        Busy,
     }
 
     [ExportGroup("Speed (m/s)")]
@@ -33,6 +40,13 @@ public partial class PlayerController : CharacterBody3D
     [Export] public float WalkNoise = 4.5f;
     [Export] public float RunNoise = 9.0f;
 
+    [ExportGroup("Visibility by stance")]
+    [Export] public float SneakVisibility = 0.75f;
+    [Export] public float WalkVisibility = 1.0f;
+    [Export] public float RunVisibility = 1.15f;
+    /// <summary>During an action in first person. Neutral by decision D-03.</summary>
+    [Export] public float BusyVisibility = 1.0f;
+
     [ExportGroup("Seconds between footsteps")]
     [Export] public float SneakStep = 0.62f;
     [Export] public float WalkStep = 0.45f;
@@ -43,6 +57,9 @@ public partial class PlayerController : CharacterBody3D
 
     public Stance CurrentStance { get; private set; } = Stance.Walk;
 
+    /// <summary>The creeping toggle chosen by the player. Survives runs and actions.</summary>
+    public bool SneakToggled { get; private set; }
+
     /// <summary>0 = unseen, 1 = fully lit. Light, garb, trade and stance together.</summary>
     public float Visibility { get; private set; }
 
@@ -50,6 +67,11 @@ public partial class PlayerController : CharacterBody3D
     public float NoiseLevel { get; private set; }
 
     public SurfaceType CurrentSurface => _surfaces.Count > 0 ? TopSurface().Surface : SurfaceType.Cobble;
+
+    /// <summary>Radius of the last footstep as emitted (after the ambient mask), metres.</summary>
+    public float LastNoiseRadius { get; private set; }
+
+    public LightSensor Sensor => _sensor;
 
     /// <summary>The interactable in reach, or null.</summary>
     public Interactable Focus { get; private set; }
@@ -71,6 +93,8 @@ public partial class PlayerController : CharacterBody3D
     {
         AddToGroup(Group);
         Head = GetNode<Node3D>("Head");
+        // The head turns with the mouse, between physics steps: no interpolation lag.
+        Head.PhysicsInterpolationMode = PhysicsInterpolationModeEnum.Off;
         FirstPersonCamera = GetNode<Camera3D>("Head/FirstPersonCamera");
         Visual = GetNode<Node3D>("Visual");
         _sensor = GetNode<LightSensor>("LightSensor");
@@ -79,7 +103,7 @@ public partial class PlayerController : CharacterBody3D
 
         Profile = GameState.Instance?.Profile ?? CharacterProfile.Default();
         if (Visual is Mannequin mannequin)
-            mannequin.Apply(Profile.Variant);
+            mannequin.Apply(Profile.Dye);
     }
 
     public override void _PhysicsProcess(double delta)
@@ -92,9 +116,9 @@ public partial class PlayerController : CharacterBody3D
         float yaw = CameraRig.Current?.Yaw ?? Mathf.DegToRad(45f);
         Vector3 direction = new Vector3(input.X, 0f, input.Y).Rotated(Vector3.Up, yaw);
 
-        CurrentStance = InputLocked ? Stance.Sneak
-            : Input.IsActionPressed(InputActions.Sneak) ? Stance.Sneak
+        CurrentStance = InputLocked ? Stance.Busy
             : Input.IsActionPressed(InputActions.Run) ? Stance.Run
+            : SneakToggled ? Stance.Sneak
             : Stance.Walk;
 
         Vector3 wanted = direction * SpeedOf(CurrentStance);
@@ -121,8 +145,14 @@ public partial class PlayerController : CharacterBody3D
 
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (InputLocked || Focus == null) return;
-        if (@event.IsActionPressed(InputActions.Interact))
+        if (InputLocked) return;
+        if (@event.IsActionPressed(InputActions.Sneak))
+        {
+            SneakToggled = !SneakToggled;
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+        if (Focus != null && @event.IsActionPressed(InputActions.Interact))
         {
             Focus.Interact(this);
             GetViewport().SetInputAsHandled();
@@ -156,9 +186,8 @@ public partial class PlayerController : CharacterBody3D
         if (_stepTimer > 0f) return;
         _stepTimer = StepOf(CurrentStance);
 
-        float radius = FootstepRadius();
-        NoiseBus.Emit(GlobalPosition, radius, NoiseKind.Footstep, this);
-        float heard = radius * (1f - 0.6f * NoiseBus.AmbientMask);
+        float heard = NoiseBus.Emit(GlobalPosition, FootstepRadius(), NoiseKind.Footstep, this);
+        LastNoiseRadius = heard;
         NoiseLevel = Mathf.Max(NoiseLevel, Mathf.Clamp(heard / NoiseForFullMeter, 0f, 1f));
     }
 
@@ -166,9 +195,10 @@ public partial class PlayerController : CharacterBody3D
     {
         float stance = CurrentStance switch
         {
-            Stance.Sneak => 0.75f,
-            Stance.Run => 1.15f,
-            _ => 1f,
+            Stance.Sneak => SneakVisibility,
+            Stance.Run => RunVisibility,
+            Stance.Busy => BusyVisibility,
+            _ => WalkVisibility,
         };
         Visibility = Mathf.Clamp(_sensor.Exposure * Profile.VisibilityMultiplier * stance, 0f, 1f);
     }

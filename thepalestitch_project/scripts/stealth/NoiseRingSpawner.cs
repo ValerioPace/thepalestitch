@@ -20,6 +20,8 @@ public partial class NoiseRingSpawner : Node3D
 
     public override void _Ready()
     {
+        // Rings are animated by tweens every frame, not by physics.
+        PhysicsInterpolationMode = PhysicsInterpolationModeEnum.Off;
         _mesh = new TorusMesh { InnerRadius = 0.965f, OuterRadius = 1.0f, Rings = 64, RingSegments = 4 };
     }
 

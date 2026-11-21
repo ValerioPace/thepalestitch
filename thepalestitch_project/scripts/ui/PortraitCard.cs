@@ -19,12 +19,12 @@ public partial class PortraitCard : Control
     private Color _cloth = new("15151a");
     private Color _trim = new("3a3a40");
 
-    public void Portray(VisageDef visage, VariantDef variant)
+    public void Portray(VisageDef visage, DyeDef dye)
     {
         _visage = visage.Id;
         // Lift the cloth a little so the hood reads against the dark card.
-        _cloth = variant.Cloth.Lightened(0.08f);
-        _trim = variant.Trim;
+        _cloth = dye.Cloth.Lightened(0.08f);
+        _trim = dye.Trim;
         QueueRedraw();
     }
 

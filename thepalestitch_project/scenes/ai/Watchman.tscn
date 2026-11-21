@@ -39,6 +39,7 @@ size = Vector3(0.14, 0.2, 0.14)
 
 [node name="Watchman" type="CharacterBody3D"]
 collision_layer = 4
+collision_mask = 3
 script = ExtResource("1_watchman")
 
 [node name="Collision" type="CollisionShape3D" parent="."]

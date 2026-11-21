@@ -18,7 +18,11 @@ public partial class Boot : Control
         var notice = GetNode<Label>("%Notice");
         notice.Modulate = new Color(1, 1, 1, 0);
         CreateTween().TweenProperty(notice, "modulate:a", 1f, 1.2f);
-        GetTree().CreateTimer(Seconds).Timeout += Leave;
+        // A child timer dies with the scene: no call into a freed Boot (FIX-014).
+        var timer = new Timer { WaitTime = Seconds, OneShot = true };
+        timer.Timeout += Leave;
+        AddChild(timer);
+        timer.Start();
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -28,7 +32,7 @@ public partial class Boot : Control
 
     private void Leave()
     {
-        if (_leaving || !IsInsideTree()) return;
+        if (_leaving) return;
         _leaving = true;
         SceneRouter.Instance.GoTo(GameState.Instance.IntroSeen ? SceneRouter.MainMenu : SceneRouter.Intro);
     }

@@ -46,6 +46,9 @@ public partial class CameraRig : Node3D
 
     public override void _Ready()
     {
+        // The rig moves every rendered frame, following the player's interpolated
+        // position: it must not be interpolated again (FIX-002).
+        PhysicsInterpolationMode = PhysicsInterpolationModeEnum.Off;
         _iso = GetNode<Camera3D>("IsoCamera");
         _player = GetNodeOrNull<PlayerController>(TargetPath);
 
@@ -65,7 +68,10 @@ public partial class CameraRig : Node3D
     {
         if (_player == null) return;
         float dt = (float)delta;
-        GlobalPosition = GlobalPosition.Lerp(_player.GlobalPosition, 1f - Mathf.Exp(-FollowSpeed * dt));
+        // Follow what is drawn (the interpolated body), not the last physics step,
+        // or the player would stutter against the camera on fast monitors.
+        Vector3 target = _player.GetGlobalTransformInterpolated().Origin;
+        GlobalPosition = GlobalPosition.Lerp(target, 1f - Mathf.Exp(-FollowSpeed * dt));
         Rotation = new Vector3(0f, Mathf.LerpAngle(Rotation.Y, _targetYaw, 1f - Mathf.Exp(-TurnSpeed * dt)), 0f);
     }
 
@@ -119,7 +125,7 @@ public partial class CameraRig : Node3D
         ApplyHead();
 
         _player.FirstPersonCamera.MakeCurrent();
-        Input.MouseMode = Input.MouseModeEnum.Captured;
+        Mouse.SetMode(Input.MouseModeEnum.Captured);
         EmitSignal(SignalName.ViewChanged, true);
     }
 
@@ -131,7 +137,7 @@ public partial class CameraRig : Node3D
         _player.InputLocked = false;
         _player.Visual.Visible = true;
         _iso.MakeCurrent();
-        Input.MouseMode = Input.MouseModeEnum.Visible;
+        Mouse.SetMode(Input.MouseModeEnum.Visible);
         EmitSignal(SignalName.ViewChanged, false);
     }
 

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Godot;
 using ThePaleStitch.AI;
 using ThePaleStitch.Core;
@@ -10,6 +11,14 @@ namespace ThePaleStitch.UI;
 /// <summary>
 /// The play screen. Kept thin on purpose: one eye for light, one bar for noise,
 /// one line for what to do. Everything else belongs to the world.
+///
+/// The hint line has two channels. A <b>context</b> hint explains the action in
+/// progress and stays until replaced (the lock). A <b>notice</b> is temporary
+/// (tutorial, bell); while it shows it covers the context hint, and when it
+/// expires the context hint comes back.
+///
+/// Hint texts may name keys as placeholders, <c>{interact}</c> or <c>{move}</c>:
+/// they are filled with the keys actually bound in the Input Map.
 /// </summary>
 public partial class Hud : CanvasLayer
 {
@@ -28,8 +37,16 @@ public partial class Hud : CanvasLayer
     private Label _bannerTitle;
     private Label _bannerBody;
 
+    private static readonly Regex KeyToken = new(@"\{(\w+)\}");
+
     private PlayerController _player;
-    private float _hintLeft;
+    private string _contextKey = "";
+    private string _noticeKey = "";
+    private float _noticeLeft;
+    private Tween _hintTween;
+
+    /// <summary>Translation key of the hint currently shown, or empty. Used by the tests.</summary>
+    public string VisibleHintKey => _noticeKey != "" ? _noticeKey : _contextKey;
 
     public override void _Ready()
     {
@@ -49,6 +66,8 @@ public partial class Hud : CanvasLayer
         _bannerBody = GetNode<Label>("%BannerBody");
 
         _hint.Text = "";
+        _hint.AutoTranslateMode = AutoTranslateModeEnum.Disabled;
+        _hint.Modulate = new Color(1, 1, 1, 0);
         _prompt.Text = "";
         _alert.Text = "";
         _bell.Visible = false;
@@ -84,26 +103,37 @@ public partial class Hud : CanvasLayer
             ? new Color("b3261e")
             : new Color(0.85f, 0.82f, 0.75f, Mathf.Clamp(worst * 1.4f, 0.3f, 1f));
 
-        if (_hintLeft > 0f)
+        if (_noticeLeft > 0f)
         {
-            _hintLeft -= (float)delta;
-            if (_hintLeft <= 0f) FadeHint(0f);
+            _noticeLeft -= (float)delta;
+            if (_noticeLeft <= 0f)
+            {
+                _noticeKey = "";
+                RefreshHint();
+            }
         }
+    }
+
+    public override void _Notification(int what)
+    {
+        if (what == NotificationTranslationChanged && _hint != null) RefreshHint(fade: false);
     }
 
     public void SetObjective(string key) => _objective.Text = key;
 
-    /// <summary>Show a tutorial line. <paramref name="seconds"/> = 0 keeps it until replaced; an empty key clears it.</summary>
-    public void ShowHint(string key, float seconds)
+    /// <summary>Hint for the action in progress; stays until replaced. Empty clears it.</summary>
+    public void SetContextHint(string key)
     {
-        _hintLeft = seconds;
-        if (string.IsNullOrEmpty(key))
-        {
-            FadeHint(0f);
-            return;
-        }
-        _hint.Text = key;
-        FadeHint(1f);
+        _contextKey = key ?? "";
+        RefreshHint();
+    }
+
+    /// <summary>Temporary hint shown for <paramref name="seconds"/>, over the context hint.</summary>
+    public void Notify(string key, float seconds)
+    {
+        _noticeKey = key ?? "";
+        _noticeLeft = seconds;
+        RefreshHint();
     }
 
     /// <summary>Progress of a first-person action, 0..1. Negative hides the bar.</summary>
@@ -118,11 +148,14 @@ public partial class Hud : CanvasLayer
     public void SetBell(bool tolling)
     {
         _bell.Visible = tolling;
-        if (tolling) ShowHint("HINT_BELL", 6f);
+        if (tolling) Notify("HINT_BELL", 6f);
     }
 
     public void ShowBanner(string titleKey, string bodyKey)
     {
+        _contextKey = "";
+        _noticeKey = "";
+        RefreshHint();
         _bannerTitle.Text = titleKey;
         _bannerBody.Text = bodyKey;
         _banner.Modulate = new Color(1, 1, 1, 0);
@@ -130,8 +163,32 @@ public partial class Hud : CanvasLayer
         CreateTween().TweenProperty(_banner, "modulate:a", 1f, 1.2f);
     }
 
-    private void FadeHint(float alpha) =>
-        CreateTween().TweenProperty(_hint, "modulate:a", alpha, 0.4f);
+    private void RefreshHint(bool fade = true)
+    {
+        string key = VisibleHintKey;
+        if (key != "") _hint.Text = FillKeys(Tr(key));
+        float alpha = key == "" ? 0f : 1f;
+
+        _hintTween?.Kill();
+        if (!fade)
+        {
+            _hint.Modulate = new Color(1, 1, 1, alpha);
+            return;
+        }
+        _hintTween = CreateTween();
+        _hintTween.TweenProperty(_hint, "modulate:a", alpha, 0.4f);
+    }
+
+    /// <summary>Replace {action} placeholders with the bound keys. {move} stands for the four movement keys.</summary>
+    public static string FillKeys(string text) =>
+        KeyToken.Replace(text, match =>
+        {
+            string token = match.Groups[1].Value;
+            if (token == "move")
+                return KeyLabel(InputActions.MoveForward) + KeyLabel(InputActions.MoveLeft)
+                     + KeyLabel(InputActions.MoveBack) + KeyLabel(InputActions.MoveRight);
+            return InputMap.HasAction(token) ? KeyLabel(token) : match.Value;
+        });
 
     /// <summary>The key bound to an action, as printed on the player's keyboard.</summary>
     public static string KeyLabel(StringName action)
@@ -139,8 +196,10 @@ public partial class Hud : CanvasLayer
         foreach (InputEvent e in InputMap.ActionGetEvents(action))
         {
             if (e is not InputEventKey key) continue;
+            // Without a display there is no keyboard layout to ask: use the physical key.
+            bool layout = DisplayServer.GetName() != "headless";
             Key code = key.PhysicalKeycode != Key.None
-                ? DisplayServer.KeyboardGetKeycodeFromPhysical(key.PhysicalKeycode)
+                ? layout ? DisplayServer.KeyboardGetKeycodeFromPhysical(key.PhysicalKeycode) : key.PhysicalKeycode
                 : key.Keycode;
             if (code == Key.None) code = key.PhysicalKeycode;
             return OS.GetKeycodeString(code);

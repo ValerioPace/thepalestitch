@@ -1,5 +1,7 @@
 using System;
 using Godot;
+using ThePaleStitch.Core;
+using ThePaleStitch.Rules;
 
 namespace ThePaleStitch.Stealth;
 
@@ -26,14 +28,7 @@ public readonly record struct NoiseEvent(Vector3 Origin, float Radius, NoiseKind
 /// </summary>
 public static class NoiseBus
 {
-    /// <summary>Physics layer 1: walls, floors, anything that stops sound and light.</summary>
-    public const uint WorldMask = 1;
-
-    /// <summary>How much of a noise survives each wall it crosses.</summary>
-    public const float WallDamping = 0.45f;
-
     private const int MaxWalls = 3;
-    private const float MaxMaskCut = 0.6f;
 
     public static event Action<NoiseEvent> Emitted;
 
@@ -43,11 +38,19 @@ public static class NoiseBus
     /// <summary>Call when a level starts so nothing leaks from the previous one.</summary>
     public static void Reset() => AmbientMask = 0f;
 
-    public static void Emit(Vector3 origin, float radius, NoiseKind kind, Node3D source)
+    /// <summary>Radius a noise of <paramref name="radius"/> has right now, after the ambient mask.</summary>
+    public static float Masked(float radius) => StealthRules.MaskedRadius(radius, AmbientMask);
+
+    /// <summary>
+    /// Publish a noise. Returns the radius it was emitted with (after the
+    /// ambient mask), so the emitter can show the same number the guards get.
+    /// </summary>
+    public static float Emit(Vector3 origin, float radius, NoiseKind kind, Node3D source)
     {
-        float masked = radius * (1f - MaxMaskCut * Mathf.Clamp(AmbientMask, 0f, 1f));
-        if (masked <= 0.05f) return;
-        Emitted?.Invoke(new NoiseEvent(origin, masked, kind, source));
+        float masked = Masked(radius);
+        if (masked > 0.05f)
+            Emitted?.Invoke(new NoiseEvent(origin, masked, kind, source));
+        return masked;
     }
 
     /// <summary>
@@ -63,11 +66,11 @@ public static class NoiseBus
 
         for (int wall = 0; wall < MaxWalls; wall++)
         {
-            var query = PhysicsRayQueryParameters3D.Create(from, to, WorldMask, exclude);
+            var query = PhysicsRayQueryParameters3D.Create(from, to, PhysicsLayers.OccluderMask, exclude);
             var hit = space.IntersectRay(query);
             if (hit.Count == 0) break;
 
-            radius *= WallDamping;
+            radius *= StealthRules.WallDamping;
             exclude.Add(hit["rid"].AsRid());
         }
 

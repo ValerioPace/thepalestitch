@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace ThePaleStitch.Core;
@@ -8,7 +9,6 @@ namespace ThePaleStitch.Core;
 /// </summary>
 public partial class SceneRouter : CanvasLayer
 {
-    public const string Boot = "res://scenes/boot/Boot.tscn";
     public const string Intro = "res://scenes/intro/IntroCinematic.tscn";
     public const string MainMenu = "res://scenes/menu/MainMenu.tscn";
     public const string CharacterCreation = "res://scenes/character/CharacterCreation.tscn";
@@ -18,6 +18,11 @@ public partial class SceneRouter : CanvasLayer
 
     private ColorRect _fade;
     private bool _busy;
+    private string _queuedPath;
+    private float _queuedFade;
+
+    /// <summary>True while a transition is running (used by the tests).</summary>
+    public bool Busy => _busy;
 
     public override void _EnterTree() => Instance = this;
 
@@ -37,32 +42,59 @@ public partial class SceneRouter : CanvasLayer
         AddChild(_fade);
     }
 
-    /// <summary>Fade out, load <paramref name="scenePath"/>, fade back in.</summary>
+    /// <summary>
+    /// Fade out, load <paramref name="scenePath"/>, fade back in. A request made
+    /// during a transition is not lost: the last one is run when the current
+    /// transition ends (FIX-008).
+    /// </summary>
     public async void GoTo(string scenePath, float fadeSeconds = 0.7f)
     {
-        if (_busy) return;
+        if (_busy)
+        {
+            _queuedPath = scenePath;
+            _queuedFade = fadeSeconds;
+            return;
+        }
         _busy = true;
         _fade.MouseFilter = Control.MouseFilterEnum.Stop;
 
-        var fadeOut = CreateTween();
-        fadeOut.TweenProperty(_fade, "modulate:a", 1.0f, fadeSeconds);
-        await ToSignal(fadeOut, Tween.SignalName.Finished);
+        try
+        {
+            var fadeOut = CreateTween();
+            fadeOut.TweenProperty(_fade, "modulate:a", 1.0f, fadeSeconds);
+            await ToSignal(fadeOut, Tween.SignalName.Finished);
 
-        GetTree().Paused = false;
-        Input.MouseMode = Input.MouseModeEnum.Visible;
-        var error = GetTree().ChangeSceneToFile(scenePath);
-        if (error != Error.Ok)
-            GD.PushError($"SceneRouter: cannot load '{scenePath}' ({error}).");
+            GetTree().Paused = false;
+            Mouse.SetMode(Input.MouseModeEnum.Visible);
+            var error = GetTree().ChangeSceneToFile(scenePath);
+            if (error != Error.Ok)
+                GD.PushError($"SceneRouter: cannot load '{scenePath}' ({error}).");
 
-        // Let the new scene run its _Ready before it becomes visible.
-        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            // Let the new scene run its _Ready before it becomes visible.
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
-        var fadeIn = CreateTween();
-        fadeIn.TweenProperty(_fade, "modulate:a", 0.0f, fadeSeconds);
-        await ToSignal(fadeIn, Tween.SignalName.Finished);
+            var fadeIn = CreateTween();
+            fadeIn.TweenProperty(_fade, "modulate:a", 0.0f, fadeSeconds);
+            await ToSignal(fadeIn, Tween.SignalName.Finished);
+        }
+        catch (Exception e)
+        {
+            // async void: nobody else would ever see this exception.
+            GD.PushError($"SceneRouter: transition to '{scenePath}' failed: {e}");
+            _fade.Modulate = new Color(1, 1, 1, 0);
+        }
+        finally
+        {
+            _fade.MouseFilter = Control.MouseFilterEnum.Ignore;
+            _busy = false;
+        }
 
-        _fade.MouseFilter = Control.MouseFilterEnum.Ignore;
-        _busy = false;
+        if (_queuedPath != null)
+        {
+            string next = _queuedPath;
+            _queuedPath = null;
+            GoTo(next, _queuedFade);
+        }
     }
 }

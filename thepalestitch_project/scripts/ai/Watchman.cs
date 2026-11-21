@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using ThePaleStitch.Core;
 using ThePaleStitch.Player;
+using ThePaleStitch.Rules;
 using ThePaleStitch.Stealth;
 
 namespace ThePaleStitch.AI;
@@ -43,6 +45,12 @@ public partial class Watchman : CharacterBody3D
 
     /// <summary>0 = at ease, 1 = alarm.</summary>
     public float Suspicion { get; private set; }
+
+    /// <summary>Result of the last sight test, 0..1 (debug overlay).</summary>
+    public float LastSight { get; private set; }
+
+    /// <summary>Where the guard sees and hears from.</summary>
+    public Vector3 EyesPosition => _eyes.GlobalPosition;
 
     public State Current { get; private set; } = State.Patrol;
 
@@ -113,6 +121,7 @@ public partial class Watchman : CharacterBody3D
     private void Sense(float dt)
     {
         float seen = _player != null ? Sight(_player) : 0f;
+        LastSight = seen;
         if (seen > 0f)
         {
             Suspicion = Mathf.Min(1f, Suspicion + seen * VisionGain * dt);
@@ -150,7 +159,7 @@ public partial class Watchman : CharacterBody3D
         }
 
         var exclude = new Godot.Collections.Array<Rid> { GetRid(), player.GetRid() };
-        var query = PhysicsRayQueryParameters3D.Create(eyes, target, NoiseBus.WorldMask, exclude);
+        var query = PhysicsRayQueryParameters3D.Create(eyes, target, PhysicsLayers.OccluderMask, exclude);
         if (GetWorld3D().DirectSpaceState.IntersectRay(query).Count > 0) return 0f;
 
         if (bump) return 1f;
@@ -161,11 +170,12 @@ public partial class Watchman : CharacterBody3D
     private void OnNoise(NoiseEvent noise)
     {
         if (noise.Source == this || Current == State.Alert || !IsInsideTree()) return;
-        if (!NoiseBus.CanHear(GetWorld3D().DirectSpaceState, noise, _eyes.GlobalPosition)) return;
+        Vector3 ears = _eyes.GlobalPosition;
+        if (!NoiseBus.CanHear(GetWorld3D().DirectSpaceState, noise, ears)) return;
 
-        // A noise near the edge of hearing is a doubt; one close by is nearly a certainty.
-        float closeness = 1f - noise.Origin.DistanceTo(GlobalPosition) / Mathf.Max(noise.Radius, 0.01f);
-        Suspicion = Mathf.Min(0.9f, Mathf.Max(Suspicion, InvestigateAt + 0.3f * Mathf.Clamp(closeness, 0f, 1f)));
+        // A noise near the edge of hearing is a doubt; one close by is nearly a
+        // certainty. Hearing never lowers suspicion and never raises the alarm.
+        Suspicion = StealthRules.SuspicionAfterHearing(Suspicion, noise.Origin.DistanceTo(ears), noise.Radius, InvestigateAt);
         StartInvestigating(noise.Origin);
     }
 

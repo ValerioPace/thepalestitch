@@ -95,7 +95,7 @@ public partial class CharacterCreation : Control
                     AddOption(group, costume.NameKey, costume.Id == _draft.CostumeId, () =>
                     {
                         _draft.CostumeId = costume.Id;
-                        _draft.VariantId = costume.Variants[0].Id;
+                        _draft.DyeId = costume.Dyes[0].Id;
                     });
                 break;
             case Step.Visage:
@@ -155,7 +155,7 @@ public partial class CharacterCreation : Control
                 AddLine($"{Tr("MOD_HEARD")}:  {Percent(costume.Noise)}", Tone(costume.Noise));
                 AddLine($"{Tr("MOD_BELT")}:  {costume.BeltSlots}", "Plain");
                 AddSpacer();
-                AddVariantRow(costume);
+                AddDyeRow(costume);
                 break;
 
             case Step.Visage:
@@ -167,12 +167,12 @@ public partial class CharacterCreation : Control
                 break;
         }
 
-        _portrait.Portray(_draft.Visage, _draft.Variant);
-        _mannequin.Apply(_draft.Variant);
+        _portrait.Portray(_draft.Visage, _draft.Dye);
+        _mannequin.Apply(_draft.Dye);
         _alias.Text = CharacterCatalog.AliasKey(_draft.Alias);
         _summary.Text =
             $"{Tr(CharacterCatalog.AliasKey(_draft.Alias))}  ·  {Tr(_draft.Trade.NameKey)}  ·  " +
-            $"{Tr(_draft.Costume.NameKey)} ({Tr(_draft.Variant.NameKey)})  ·  {Tr(_draft.Visage.NameKey)}";
+            $"{Tr(_draft.Costume.NameKey)} ({Tr(_draft.Dye.NameKey)})  ·  {Tr(_draft.Visage.NameKey)}";
     }
 
     private void AddSkillRow(Skill skill, int value)
@@ -202,26 +202,26 @@ public partial class CharacterCreation : Control
         _detailExtra.AddChild(row);
     }
 
-    private void AddVariantRow(CostumeDef costume)
+    private void AddDyeRow(CostumeDef costume)
     {
         var row = new HBoxContainer();
         row.AddThemeConstantOverride("separation", 16);
         var group = new ButtonGroup();
 
-        foreach (VariantDef variant in costume.Variants)
+        foreach (DyeDef dye in costume.Dyes)
         {
             var button = new Button
             {
-                Text = variant.NameKey,
-                Icon = Swatch(variant.Cloth, variant.Trim),
+                Text = dye.NameKey,
+                Icon = Swatch(dye.Cloth, dye.Trim),
                 ToggleMode = true,
                 ButtonGroup = group,
-                ButtonPressed = variant.Id == _draft.VariantId,
+                ButtonPressed = dye.Id == _draft.DyeId,
                 CustomMinimumSize = new Vector2(0, 56),
             };
             button.Pressed += () =>
             {
-                _draft.VariantId = variant.Id;
+                _draft.DyeId = dye.Id;
                 Refresh();
             };
             row.AddChild(button);

@@ -16,9 +16,6 @@ public partial class GameState : Node
     /// <summary>The character built in the creation screen (a sensible default until then).</summary>
     public CharacterProfile Profile { get; private set; } = CharacterProfile.Default();
 
-    /// <summary>True once the player confirmed a character in this session.</summary>
-    public bool HasProfile { get; private set; }
-
     public bool IntroSeen { get; private set; }
 
     public string Locale { get; private set; } = "en";
@@ -32,7 +29,6 @@ public partial class GameState : Node
     public void CommitProfile(CharacterProfile profile)
     {
         Profile = profile;
-        HasProfile = true;
     }
 
     public void SetLocale(string locale)

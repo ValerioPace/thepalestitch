@@ -17,4 +17,6 @@ public static class InputActions
     public static readonly StringName ToggleView = "toggle_view";
     public static readonly StringName Pause = "pause";
     public static readonly StringName Skip = "skip";
+    /// <summary>F3, debug builds only (CR-020).</summary>
+    public static readonly StringName DebugOverlay = "debug_overlay";
 }
