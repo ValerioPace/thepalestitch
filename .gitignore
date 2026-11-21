@@ -1,0 +1,12 @@
+# Output of tools/verify
+verify-report/
+
+# .NET build output of the test project
+tests/**/bin/
+tests/**/obj/
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+*.user

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Unit tests for the engine-independent code of The Pale Stitch.
+
+    The game's pure sources (scripts/rules, scripts/core/PhysicsLayers.cs) are
+    compiled in by link, so the tests never load Godot. The project has no
+    package dependencies: it runs with a minimal xUnit-style runner
+    (Framework/), and can move to xUnit unchanged when CI is in place (CR-011).
+
+    Run from the repository root: dotnet run (project tests/ThePaleStitch.Tests)
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RollForward>LatestMajor</RollForward>
+    <UseAppHost>false</UseAppHost>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>ThePaleStitch.Tests</RootNamespace>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../thepalestitch_project/scripts/rules/**/*.cs" Link="Game/Rules/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="../../thepalestitch_project/scripts/core/PhysicsLayers.cs" Link="Game/Core/PhysicsLayers.cs" />
+  </ItemGroup>
+</Project>
