@@ -52,6 +52,7 @@ Compila, esegue i test unitari e gli scenari di gioco senza finestra, e termina 
 |---|---|
 | [Technical Guide](docs/tech/TECHNICAL_GUIDE.md) | Fondamenti di Godot 4 .NET da zero, ogni sistema del gioco spiegato passo passo, ricette, diagnosi |
 | [Architettura](docs/tech/ARCHITECTURE.md) | Moduli, dipendenze, flussi a runtime, configurazione, decisioni |
+| [Nota di ripresa](docs/HANDOFF.md) | Stato corrente e prossima azione, da leggere a inizio sessione |
 | [Piano dei task](docs/PLAN.md) | Iterazioni, ciclo di lavoro agentico, registro delle decisioni |
 | [Backlog](docs/BACKLOG.md) | Difetti, change request e integrazioni nice to have, con priorità e stime |
 | [Changelog](CHANGELOG.md) | Storia delle versioni |

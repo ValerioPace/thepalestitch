@@ -1,0 +1,2 @@
+# Normalizza i file di testo a LF nel repository, qualunque sia il fine riga locale
+* text=auto eol=lf
